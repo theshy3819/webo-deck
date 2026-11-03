@@ -1,0 +1,1199 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex, nofollow">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>웹오 IR 2026-10-16</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@300;500;700;800&display=swap">
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/SplitText.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/DrawSVGPlugin.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/CustomEase.min.js"></script>
+<style>
+@font-face{font-family:Pretendard;src:url(assets/fonts/PretendardVariable.woff2) format("woff2-variations"),url(assets/fonts/PretendardVariable.woff2) format("woff2");font-weight:45 920;font-display:block}
+/* =========================================================
+   1. TOKENS — 화이트(기본) / 블랙(html[data-theme=dark])
+   ========================================================= */
+:root{
+  --ink:#0b1330; --sub:#4a5270; --mute:#8a93aa; --line:#e3e8f1; --soft:#f4f7fc;
+  --sky:#12b5f5; --brand:#1e6bff; --violet:#b06cf5; --warn:#f0aa28; --ok:#0e7040; --bad:#b42a27;
+  --warn-ink:#8a5a00; --warn-bg:rgba(240,170,40,.14); --ok-bg:rgba(14,112,64,.1);
+  --grad:linear-gradient(100deg,var(--sky),var(--brand) 50%,var(--violet));
+  --stage-bg:#e9eef6; --slide-bg:#ffffff; --core-bg:rgba(255,255,255,.88); --shell-bg:rgba(11,19,48,.035); --shell-ring:rgba(11,19,48,.05);
+  --bar:#d5dbe6; --track:#f4f7fc; --pill-bg:rgba(255,255,255,.7); --glow-k:1;
+  --fs-title:64px; --fs-key:52px; --fs-body:36px; --fs-cap:32px; --fs-num:150px; --fs-num-sm:84px;
+}
+html[data-theme="dark"]{
+  --ink:#f2f4fa; --sub:#b9c0d6; --mute:#8a93b0; --line:rgba(255,255,255,.13); --soft:rgba(255,255,255,.06);
+  --ok:#5fd39a; --bad:#ff8a7a; --warn-ink:#ffd27a; --warn-bg:rgba(240,170,40,.16); --ok-bg:rgba(95,211,154,.12);
+  --stage-bg:#04060c; --slide-bg:#0a0e1c; --core-bg:rgba(255,255,255,.055); --shell-bg:rgba(255,255,255,.04); --shell-ring:rgba(255,255,255,.08);
+  --bar:rgba(255,255,255,.16); --track:rgba(255,255,255,.07); --pill-bg:rgba(255,255,255,.08); --glow-k:1.9;
+}
+
+/* =========================================================
+   2. FIXED STAGE (1920×1080 고정 · 창 크기에 맞춰 축소)
+   ========================================================= */
+html,body{margin:0;height:100%;overflow:hidden;background:var(--stage-bg);font-family:Pretendard,sans-serif;word-break:keep-all;-webkit-font-smoothing:antialiased}
+.deck-viewport{position:fixed;inset:0;overflow:hidden}
+.deck-stage{position:absolute;left:0;top:0;width:1920px;height:1080px;transform-origin:0 0;background:var(--slide-bg);overflow:hidden}
+.slide{position:absolute;inset:0;color:var(--ink);background:var(--slide-bg);visibility:hidden;overflow:hidden;perspective:1400px}
+.slide.active{visibility:visible;z-index:1}
+.en{font-family:Sora,Pretendard,sans-serif}
+.abs{position:absolute}
+@media (prefers-reduced-motion:reduce){*{animation-duration:.01ms!important}}
+
+/* =========================================================
+   3. ATMOSPHERE — 흐르는 빛, 입자(표지·마무리), 격자선
+   ========================================================= */
+.glow{position:absolute;border-radius:50%;filter:blur(120px);pointer-events:none;opacity:calc(var(--o,.14) * var(--glow-k));animation:drift 20s ease-in-out infinite alternate}
+html[data-theme="dark"] .glow{mix-blend-mode:screen}
+@keyframes drift{to{transform:translate(80px,50px) scale(1.1)}}
+canvas.dust{position:absolute;inset:0;width:1920px;height:1080px;pointer-events:none}
+.gl{position:absolute;background:var(--line);pointer-events:none;overflow:hidden}
+.gl.v{width:1px}.gl.h{height:1px}
+.gl.h::after,.gl.v::after{content:"";position:absolute}
+.gl.h::after{top:-1px;height:3px;width:240px;left:-240px;background:linear-gradient(90deg,transparent,var(--brand),var(--violet),transparent);animation:runX 6s 2s ease-in-out infinite}
+.gl.v::after{left:-1px;width:3px;height:240px;top:-240px;background:linear-gradient(180deg,transparent,var(--sky),var(--brand),transparent);animation:runY 7s 2.6s ease-in-out infinite}
+@keyframes runX{70%,100%{left:100%}} @keyframes runY{70%,100%{top:100%}}
+.node{position:absolute;width:14px;height:14px;margin:-7px 0 0 -7px;border-radius:50%;background:var(--grad);pointer-events:none}
+.node::after{content:"";position:absolute;inset:-10px;border-radius:50%;background:var(--brand);opacity:.25;filter:blur(8px);animation:pulse 2.6s ease-in-out infinite}
+@keyframes pulse{50%{transform:scale(1.8);opacity:.05}}
+
+/* =========================================================
+   4. TYPE
+   ========================================================= */
+.g{background:var(--grad);background-size:200% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:sheen 6s linear infinite}
+@keyframes sheen{to{background-position:-200% 0}}
+.g:has(.w,.ch){background:none;animation:none;color:inherit}
+.g .w,.g .ch{background:var(--grad);background-size:300% 100%;-webkit-background-clip:text;background-clip:text;color:transparent}
+.m{color:var(--mute)}
+/* 대제목: 모든 장 같은 자리·같은 크기·한 줄 */
+.ttl{position:absolute;left:144px;top:150px;width:1632px;margin:0;font-size:var(--fs-title);font-weight:800;letter-spacing:-.035em;line-height:1.18;white-space:nowrap;z-index:5}
+.ttl .w{display:inline-block}
+.key{font-size:var(--fs-key);font-weight:700;letter-spacing:-.03em;line-height:1.25;margin:0}
+.body{font-size:var(--fs-body);font-weight:500;line-height:1.45;color:var(--sub);margin:0;letter-spacing:-.015em}
+.body b{font-weight:700;color:var(--ink)}
+.cap{font-size:var(--fs-cap);font-weight:400;line-height:1.35;color:var(--mute);margin:0}
+/* 출처: 별표 한 줄, 작게 */
+.src{position:absolute;left:144px;right:144px;bottom:30px;margin:0;font-size:22px;line-height:1.3;color:var(--mute);white-space:nowrap}
+.tag{display:inline-flex;align-items:center;gap:10px;padding:4px 18px;border-radius:999px;font-size:var(--fs-cap);font-weight:600;color:var(--tag-ink,var(--brand));background:var(--tag-bg,rgba(30,107,255,.1));white-space:nowrap;line-height:1.4}
+html[data-theme="dark"]{--tag-ink:#8fb8ff;--tag-bg:rgba(30,107,255,.22)}
+.tag::before{content:"";width:12px;height:12px;border-radius:50%;background:var(--grad)}
+.tag.warn{color:var(--warn-ink);background:var(--warn-bg)} .tag.warn::before{background:var(--warn)}
+.tag.ok{color:var(--ok);background:var(--ok-bg)} .tag.ok::before{background:var(--ok)}
+.tag.plain{color:var(--sub);background:var(--soft)} .tag.plain::before{background:var(--mute)}
+.tag.sm{font-size:24px;padding:2px 14px;gap:8px} .tag.sm::before{width:10px;height:10px}
+
+/* chrome: 작은 로고 + 쪽 번호 */
+.chrome{position:absolute;left:144px;right:144px;top:64px;display:flex;justify-content:space-between;align-items:center;pointer-events:none}
+.chrome .pg{position:absolute;right:-88px;top:-28px;font-size:24px;font-weight:500;color:var(--mute);letter-spacing:.02em} .chrome .pg i{font-style:normal;opacity:.7}
+
+/* =========================================================
+   5. COMPONENTS
+   ========================================================= */
+.logo{display:flex;align-items:flex-end;font-weight:800;letter-spacing:-.045em;line-height:1;color:var(--ink)}
+.logo svg{width:1.05em;height:1.05em;margin-left:.02em;overflow:visible}
+.logo.sm{font-size:40px}
+.pill{display:inline-flex;align-items:center;gap:16px;padding:12px 28px 12px 22px;border-radius:999px;background:var(--pill-bg);box-shadow:0 0 0 1px var(--line) inset;backdrop-filter:blur(14px);font-size:var(--fs-body);font-weight:600;color:var(--ink);white-space:nowrap}
+.pill .dot{width:18px;height:18px;border-radius:50%;background:var(--grad);box-shadow:0 0 16px rgba(30,107,255,.6)}
+.bz{background:var(--shell-bg);border-radius:36px;padding:8px;box-shadow:0 0 0 1px var(--shell-ring),0 40px 90px -36px rgba(30,107,255,.30);box-sizing:border-box}
+.bz>.core{position:relative;height:100%;box-sizing:border-box;background:var(--core-bg);border-radius:28px;box-shadow:inset 0 1px 1px rgba(255,255,255,.6);padding:36px 40px}
+html[data-theme="dark"] .bz>.core{box-shadow:inset 0 1px 1px rgba(255,255,255,.12)}
+.bz.hot{background:linear-gradient(140deg,rgba(18,181,245,.18),rgba(30,107,255,.14),rgba(176,108,245,.2))}
+.bz.dim .core{background:var(--soft)}
+@property --ang{syntax:"<angle>";initial-value:0deg;inherits:false}
+.beam{position:relative}
+.beam::before{content:"";position:absolute;inset:-1px;border-radius:inherit;padding:2px;background:conic-gradient(from var(--ang),transparent 0 70%,var(--sky) 80%,var(--brand) 88%,var(--violet) 95%,transparent);-webkit-mask:linear-gradient(#000 0 0) content-box exclude,linear-gradient(#000 0 0);mask:linear-gradient(#000 0 0) content-box exclude,linear-gradient(#000 0 0);animation:spin 4s linear infinite;pointer-events:none;z-index:2}
+@keyframes spin{to{--ang:360deg}}
+
+/* 큰 숫자 타일 */
+.stat{display:flex;flex-direction:column;gap:6px}
+.stat .lb{font-size:var(--fs-body);font-weight:600;color:var(--sub)}
+.stat .n{font-family:Sora,Pretendard;font-size:var(--fs-num-sm);font-weight:800;letter-spacing:-.045em;line-height:1.05;white-space:nowrap}
+.stat .n small{font-family:Pretendard;font-size:44px;font-weight:800;letter-spacing:-.03em;margin-left:4px}
+.stat .n .pre{font-family:Pretendard;font-size:44px;font-weight:800;margin-right:8px}
+.stat .cd{font-size:var(--fs-cap);color:var(--mute);line-height:1.35}
+
+/* 표 */
+.tbl{position:absolute;border-collapse:separate;border-spacing:0;font-size:var(--fs-cap);line-height:1.3;letter-spacing:-.015em;table-layout:fixed}
+.tbl th,.tbl td{padding:16px 24px;text-align:left;vertical-align:middle;border-bottom:1px solid var(--line)}
+.tbl thead th{font-weight:600;color:var(--mute);border-bottom:2px solid var(--ink);white-space:nowrap}
+.tbl thead th.en{font-size:34px;font-weight:800;color:var(--ink);letter-spacing:.02em}
+.tbl tbody th{font-weight:600;color:var(--sub);font-size:var(--fs-cap);line-height:1.25}
+.tbl td{font-size:var(--fs-body);color:var(--ink);font-weight:600;line-height:1.25}
+.tbl td.c,.tbl th.c{text-align:center}
+.tbl .hot{background:rgba(30,107,255,.07)}
+html[data-theme="dark"] .tbl .hot{background:rgba(30,107,255,.16)}
+.tbl .dash{color:var(--mute);font-weight:400}
+.tbl .wait{color:var(--warn-ink);font-weight:600;font-size:30px}
+
+/* 가로 비교 막대 */
+.bars .row{display:grid;grid-template-columns:470px 1fr 260px;align-items:center;gap:24px;margin-bottom:24px}
+.bars .lab{font-size:var(--fs-body);font-weight:600;color:var(--sub);line-height:1.2}
+.bars .lab small{display:block;font-size:26px;font-weight:500;color:var(--mute)}
+.bars .lab.us{color:var(--ink);font-weight:700}
+.bars .track{height:48px;border-radius:999px;background:var(--track);overflow:hidden}
+.bars .fill{height:100%;border-radius:999px;background:var(--bar);transform-origin:left}
+.bars .fill.us{background:var(--grad)}
+.bars .val{font-family:Sora,Pretendard;font-size:44px;font-weight:800;text-align:right;letter-spacing:-.04em;white-space:nowrap}
+.bars .val small{font-family:Pretendard;font-size:32px;font-weight:700}
+
+/* 세로 막대 차트 */
+.chart .bar{position:absolute;bottom:0;border-radius:16px 16px 6px 6px;background:var(--bar);transform-origin:bottom}
+.chart .bar.us{background:linear-gradient(180deg,var(--violet),var(--brand) 55%,var(--sky))}
+.chart .v{position:absolute;text-align:center;font-family:Sora,Pretendard;font-size:var(--fs-body);font-weight:700}
+.chart .y{position:absolute;text-align:center;font-family:Sora,Pretendard;font-size:var(--fs-cap);color:var(--mute);top:100%;margin-top:14px;white-space:nowrap}
+.chart .y.us{color:var(--ink);font-weight:700}
+
+/* 흐름(세로 레일) */
+.flow .st{position:relative;display:grid;grid-template-columns:88px 1fr;gap:28px;align-items:start}
+.flow .no{width:80px;height:80px;border-radius:50%;display:grid;place-items:center;font-size:36px;font-weight:800;color:#fff;background:var(--grad);box-shadow:0 10px 30px -8px rgba(30,107,255,.6);position:relative;z-index:1}
+.flow .lab{font-size:44px;font-weight:800;letter-spacing:-.03em;line-height:1.2}
+.flow .lab small{font-size:var(--fs-cap);font-weight:600;color:var(--brand);margin-left:12px}
+html[data-theme="dark"] .flow .lab small{color:#8fb8ff}
+.flow .desc{font-size:var(--fs-body);color:var(--sub);margin-top:6px;letter-spacing:-.02em;font-weight:500}
+.ct-grid{display:grid;grid-template-columns:repeat(2,max-content);gap:10px 34px;margin-top:12px}
+.ct-grid span{font-size:26px;font-weight:600;color:var(--sub);letter-spacing:-.02em;white-space:nowrap}
+.ct-grid span::before{content:"";display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--grad);margin-right:12px;vertical-align:3px}
+.ct-grid b{color:var(--ink);font-weight:700}
+.xpages{display:grid;margin-top:16px}.xpage{grid-area:1/1;display:grid;gap:18px;align-content:start}.xr{display:grid;grid-template-columns:52px 1fr;column-gap:8px;align-items:start}.xl{padding-top:4px;font-size:23px;font-weight:800;color:var(--ink)}.xw{display:flex;flex-wrap:wrap;gap:8px}.xc{display:inline-flex;align-items:center;padding:5px 14px;border-radius:999px;font-size:22px;font-weight:600;color:var(--tag-ink,var(--brand));background:var(--tag-bg,rgba(30,107,255,.1));white-space:nowrap}.xc.own{background:var(--brand);color:#fff}.xleg{display:inline-flex;align-items:center;gap:8px;margin:2px 0 0;font-size:18px;font-weight:600;color:var(--mute)}.xind{display:grid;grid-template-columns:auto 1fr;align-items:center;gap:16px;padding:14px 18px;border-radius:18px;background:linear-gradient(120deg,var(--tag-bg,rgba(30,107,255,.08)),transparent 85%)}.xnum{display:flex;align-items:baseline;gap:4px;padding-right:16px;border-right:1px solid var(--line,rgba(120,120,140,.25))}.xnum b{font-size:48px;font-weight:800;line-height:1;letter-spacing:-.03em;background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}.xnum span{font-size:19px;font-weight:700;color:var(--ink)}.xdom{margin:0;display:flex;flex-wrap:nowrap;align-items:center;gap:4px 8px;font-size:20px;white-space:nowrap;font-weight:700;color:var(--ink);letter-spacing:-.02em}.xdom i{font-style:normal;font-weight:400;color:var(--mute);opacity:.6}.xsub{margin:6px 0 0;font-size:17px;font-weight:500;color:var(--mute)}.xpager{display:inline-flex;gap:8px}.xpager i{width:10px;height:10px;border-radius:50%;background:var(--line,rgba(120,120,140,.3))}.xpager .xd1{background:var(--brand)}.xdot{width:14px;height:14px;padding:0}
+[data-name="s16"] .flow .no{width:88px;height:88px;padding:3px;box-sizing:border-box;overflow:hidden}
+[data-name="s16"] .flow .no img{width:100%;height:100%;display:block;border-radius:50%;object-fit:cover;border:3px solid var(--slide-bg);box-sizing:border-box}
+.cg{position:absolute;left:144px;top:330px;width:1632px;display:grid;grid-template-columns:420px 1fr 1fr;column-gap:64px;row-gap:46px;align-items:center}
+.cg .hd{font-size:28px;font-weight:600;color:var(--mute)}
+.cg .lb2{font-size:34px;font-weight:800;letter-spacing:-.03em;white-space:nowrap;line-height:1.2}
+.cg .lb2 small{display:block;font-size:22px;font-weight:600;color:var(--mute);letter-spacing:0;margin-top:4px}
+.cg .lb2.us{color:var(--ink)}
+.gg{display:flex;align-items:center;gap:24px}
+.gg .tk{position:relative;flex:1;height:32px;border-radius:999px;background:var(--soft);box-shadow:inset 0 0 0 1px var(--line);overflow:hidden}
+.gg .fl{position:absolute;left:0;top:0;bottom:0;border-radius:999px;background:var(--grad)}
+.gg .fl.red{background:linear-gradient(90deg,#FF8F86,#E5484D);box-shadow:0 6px 18px -6px rgba(229,72,77,.55)}
+.gg .fl.rng{background:repeating-linear-gradient(135deg,rgba(229,72,77,.42) 0 9px,rgba(229,72,77,.16) 9px 18px);border-radius:0 999px 999px 0}
+.gg .v{flex:0 0 200px;text-align:right;font-size:46px;font-weight:800;letter-spacing:-.03em;white-space:nowrap}
+.gg .v small{font-size:26px;font-weight:700;margin-left:2px}
+.gg .v.red{color:#E5484D}
+.gg .v.free{font-size:38px}
+.flow11{position:absolute;left:144px;top:300px;width:1632px;height:200px}
+.flow11 .l11{position:absolute;left:163px;width:1306px;top:55px;height:3px;border-radius:3px;background:linear-gradient(90deg,var(--sky),var(--brand),var(--violet));opacity:.55}
+.flow11 .f11{position:absolute;top:0;width:326px;display:flex;flex-direction:column;align-items:center;gap:22px}
+.flow11 .f11 .ic{width:112px;height:112px;border-radius:32px;display:grid;place-items:center;background:var(--slide-bg);box-shadow:0 0 0 1px var(--line),0 18px 40px -20px rgba(30,107,255,.45)}
+.flow11 .f11 .ic svg{width:46px;height:46px;stroke:var(--brand);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.flow11 .f11.hot .ic{background:var(--grad);box-shadow:0 18px 40px -16px rgba(30,107,255,.6)}
+.flow11 .f11.hot .ic svg{stroke:#fff}
+.flow11 .f11 .n{font-size:32px;font-weight:800;letter-spacing:-.03em;white-space:nowrap}
+.vd2{position:absolute;box-sizing:border-box;padding:36px 36px 40px;border-radius:28px;background:var(--slide-bg);box-shadow:0 0 0 1px var(--line),0 24px 50px -32px rgba(11,19,48,.28);display:flex;flex-direction:column;align-items:center;gap:14px;text-align:center}
+.vd2 .vic{width:68px;height:68px;border-radius:50%;display:grid;place-items:center}
+.vd2 .vic svg{width:32px;height:32px;fill:none;stroke:#fff;stroke-width:2.8;stroke-linecap:round;stroke-linejoin:round}
+.vd2 .vic.bad{background:#E5484D}.vd2 .vic.warn{background:#F0A020}.vd2 .vic.ok{background:#20A36B}
+.vd2 .lb{font-size:28px;font-weight:700;letter-spacing:-.02em}
+.vd2 .lb.bad{color:#D13A3F}.vd2 .lb.warn{color:#C47F0A}.vd2 .lb.ok{color:#178A5A}
+.vd2 .smp{font-size:38px;font-weight:700;letter-spacing:-.03em;white-space:nowrap;margin-top:6px}
+.flow .rail{position:absolute;left:39px;width:3px;background:linear-gradient(var(--sky),var(--brand),var(--violet));transform-origin:top;border-radius:3px}
+
+/* 가로 파이프라인 */
+.pipe{position:absolute;display:grid;grid-template-columns:repeat(4,1fr);gap:28px}
+.pipe .rail{position:absolute;left:40px;right:40px;top:38px;height:4px;border-radius:4px;background:var(--grad);transform-origin:left}
+.pipe .st{position:relative}
+.pipe .no{width:80px;height:80px;border-radius:50%;display:grid;place-items:center;font-family:Sora;font-size:34px;font-weight:800;color:#fff;background:var(--grad);box-shadow:0 10px 30px -8px rgba(30,107,255,.6);position:relative;z-index:1}
+.pipe .lab{font-size:44px;font-weight:800;letter-spacing:-.03em;line-height:1.2;margin-top:24px;white-space:nowrap}
+.pipe .stack{font-family:Sora,Pretendard;font-size:30px;font-weight:700;color:var(--brand);margin-top:12px;letter-spacing:-.01em;line-height:1.3;white-space:nowrap}
+html[data-theme="dark"] .pipe .stack{color:#8fb8ff}
+
+/* 행 목록 */
+.rows{display:grid;gap:16px}
+.rows .r{display:grid;grid-template-columns:28px 1fr;gap:22px;align-items:start;padding:22px 30px;border-radius:24px;background:var(--soft);box-shadow:0 0 0 1px var(--line) inset}
+.rows .r::before{content:"";width:16px;height:16px;margin-top:14px;border-radius:50%;background:var(--grad)}
+.rows .h{font-size:40px;font-weight:700;letter-spacing:-.03em;line-height:1.2}
+.rows .d{font-size:var(--fs-cap);color:var(--sub);margin-top:6px;font-weight:500;line-height:1.3}
+.rows.tight{gap:12px} .rows.tight .r{padding:14px 28px} .rows.tight .h{font-size:36px} .rows.tight .d{font-size:30px;margin-top:4px}
+
+/* 제목·설명 위계가 뚜렷한 항목(07) */
+.pts .p{padding:32px 0;border-top:1px solid var(--line)}
+.pts .p:last-child{border-bottom:1px solid var(--line)}
+.pts .h{font-size:34px;font-weight:800;letter-spacing:-.035em;line-height:1.2;white-space:nowrap;color:var(--ink)}
+.pts .d{font-size:25px;font-weight:500;color:var(--mute);margin-top:12px;line-height:1.3;white-space:nowrap}
+
+/* 템플릿 넘기기(07): CSS만, 3초마다 다음 장 */
+.tpl{position:absolute;border-radius:22px;overflow:hidden;background:var(--soft);box-shadow:0 0 0 1px var(--line),0 40px 90px -40px rgba(30,107,255,.35)}
+/* 02 시장 */
+.mk .lb{font-size:32px;font-weight:600;color:var(--sub)}
+.mk .n{font-family:Sora,Pretendard;font-weight:800;letter-spacing:-.045em;line-height:1.1;white-space:nowrap;margin-top:8px}
+.mk .n small{font-family:Pretendard;font-weight:800;letter-spacing:-.03em;margin-left:6px}
+/* 팀: 1단계 경력 → 2단계 웹오에서 맡은 일 */
+.tm{position:absolute;top:312px;width:522px;height:590px;box-sizing:border-box;padding:34px;border-radius:32px;background:var(--soft);box-shadow:0 0 0 1px var(--line) inset;display:flex;flex-direction:column;align-items:center;text-align:center}
+.tm .ph{width:124px;height:124px;border-radius:50%;padding:4px;background:var(--grad);box-sizing:border-box;flex:0 0 auto}
+.tm .ph img{width:100%;height:100%;border-radius:50%;object-fit:cover;border:3px solid var(--slide-bg);box-sizing:border-box;display:block}
+.tm .nm{font-size:44px;font-weight:800;letter-spacing:-.03em;margin-top:18px;white-space:nowrap;line-height:1.15}
+.tm .rl{font-size:26px;font-weight:700;margin-top:6px;white-space:nowrap}
+.tm .lay{position:relative;width:100%;flex:1;margin-top:22px;border-top:1px solid var(--line)}
+.tm .p1,.tm .p2{position:absolute;left:0;right:0;top:22px;display:grid;gap:10px;justify-items:center}
+.tm .p1 span{font-size:25px;font-weight:600;color:var(--sub);white-space:nowrap;letter-spacing:-.02em;line-height:1.3}
+.tm .p2 span{font-size:30px;font-weight:700;color:var(--ink);white-space:nowrap;letter-spacing:-.025em;line-height:1.3}
+.tpl .scr{position:relative;width:100%;aspect-ratio:4/3;overflow:hidden;background:#fff}
+.tpl .scr img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;animation:swap 12s infinite;will-change:transform,opacity}
+.tpl .scr img:nth-child(2){animation-delay:2s}.tpl .scr img:nth-child(3){animation-delay:4s}.tpl .scr img:nth-child(4){animation-delay:6s}.tpl .scr img:nth-child(5){animation-delay:8s}.tpl .scr img:nth-child(6){animation-delay:10s}
+@keyframes swap{0%{opacity:0;transform:translateX(7%)}3%,16.7%{opacity:1;transform:none}19.7%,100%{opacity:0;transform:translateX(-7%)}}
+
+/* 인프라 상자(09) */
+.box{position:absolute;box-sizing:border-box;padding:22px 28px;border-radius:24px;background:var(--soft);box-shadow:0 0 0 1px var(--line) inset}
+.box.hot{background:linear-gradient(140deg,rgba(18,181,245,.12),rgba(30,107,255,.1),rgba(176,108,245,.14))}
+.box .n{font-size:34px;font-weight:800;letter-spacing:-.03em;line-height:1.2;white-space:nowrap}
+.box .s{font-family:Sora,Pretendard;font-size:24px;font-weight:600;color:var(--brand);margin-top:10px;letter-spacing:-.01em;white-space:nowrap}
+html[data-theme="dark"] .box .s{color:#8fb8ff}
+.box .t{font-size:24px;font-weight:500;color:var(--sub);margin-top:6px;white-space:nowrap}
+.lane{position:absolute;font-size:24px;font-weight:600;color:var(--mute);margin:0}
+/* 09 입체 타일: 윗면 하이라이트 + 두께 + 바닥 그림자, 살짝 원근 */
+:root{--iso-top:#ffffff;--iso-bot:#eef3fb;--slab:#d9e2f1}
+html[data-theme="dark"]{--iso-top:rgba(255,255,255,.10);--iso-bot:rgba(255,255,255,.04);--slab:#1b2347}
+.iso{position:absolute;box-sizing:border-box;border-radius:22px;background:linear-gradient(180deg,var(--iso-top),var(--iso-bot));box-shadow:inset 0 1px 0 rgba(255,255,255,.75),0 0 0 1px var(--line),0 10px 0 0 var(--slab),0 10px 0 1px var(--line),0 34px 46px -22px rgba(30,107,255,.42);transform:perspective(1400px) rotateX(7deg);transform-origin:50% 100%;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:6px}
+.iso.hot{background:linear-gradient(180deg,var(--iso-top),rgba(30,107,255,.10))}
+.iso .n{font-size:32px;font-weight:800;letter-spacing:-.03em;line-height:1.15;white-space:nowrap;margin-top:6px}
+.iso .s{font-family:Sora,Pretendard;font-size:22px;font-weight:600;color:var(--brand);letter-spacing:-.01em;white-space:nowrap}
+html[data-theme="dark"] .iso .s{color:#8fb8ff}
+.iso .t{font-size:22px;font-weight:500;color:var(--sub);white-space:nowrap}
+.iso .xp-ic{flex:0 0 auto;width:52px;height:52px}
+.iso.sm .xp-ic{width:42px;height:42px;border-radius:13px} .iso.sm .xp-ic svg{width:24px;height:24px}
+.iso.sm .n{font-size:28px;margin-top:2px}
+.iso .row{display:flex;align-items:center;justify-content:center;gap:22px}
+.arw.s9{font-size:28px;color:var(--brand);opacity:.7}
+.pipe .no svg{width:38px;height:38px;stroke:#fff;fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.pipe .no b{position:absolute;right:-8px;top:-8px;width:32px;height:32px;border-radius:50%;background:var(--slide-bg);color:var(--brand);font-size:18px;font-weight:800;display:grid;place-items:center;box-shadow:0 0 0 2px var(--brand)}
+/* AI 검수 판정 그림(11) */
+.tag.bad{color:var(--bad);background:rgba(180,42,39,.12)} .tag.bad::before{background:var(--bad)}
+html[data-theme="dark"] .tag.bad{background:rgba(255,138,122,.16)}
+.vd{position:absolute;box-sizing:border-box;padding:26px 32px;border-radius:24px;background:var(--soft);box-shadow:0 0 0 1px var(--line) inset}
+.vd .smp{font-size:36px;font-weight:700;letter-spacing:-.03em;margin-top:20px;white-space:nowrap}
+.vd .fix{font-size:25px;font-weight:500;color:var(--sub);margin-top:14px;white-space:nowrap}
+[data-name="s11r"] .box{display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center}
+[data-name="s11r"] .vd{display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;min-height:216px}
+.xp-card{display:grid;gap:14px;margin-top:16px}
+.xp-row{display:flex;align-items:center;gap:16px;font-size:30px;font-weight:700;letter-spacing:-.02em;white-space:nowrap;color:var(--ink)}
+.xp-ic{flex:0 0 52px;height:52px;border-radius:16px;display:grid;place-items:center;background:var(--grad);box-shadow:0 10px 24px -10px rgba(30,107,255,.55),inset 0 1px 0 rgba(255,255,255,.45)}
+.xp-ic svg{width:28px;height:28px;stroke:#fff;fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.mk-bad{color:var(--bad);background:rgba(180,42,39,.12);border-radius:6px;padding:0 6px;text-decoration:underline wavy var(--bad);text-decoration-thickness:2px;text-underline-offset:8px}
+.mk-warn{color:var(--warn-ink);background:var(--warn-bg);border-radius:6px;padding:0 6px;text-decoration:underline dashed var(--warn);text-decoration-thickness:2px;text-underline-offset:8px}
+.arw{position:absolute;font-family:Sora;font-size:40px;font-weight:300;color:var(--mute);line-height:1}
+
+/* 시연 영상 */
+.vid{position:absolute;left:144px;top:340px;width:1632px;height:640px;border-radius:32px;overflow:hidden;background:#0b1330;display:grid;place-items:center;cursor:pointer;z-index:10}
+.vid video{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:#000;opacity:0}
+.vid.has-video video{opacity:1} .vid.has-video .ph{display:none}
+.vid .ph{display:grid;justify-items:center;gap:22px;color:#e8ecf6;font-size:var(--fs-body);font-weight:600;text-align:center}
+.vid .ph .play{width:120px;height:120px;border-radius:50%;background:var(--grad);display:grid;place-items:center;animation:breathe 2.4s ease-in-out infinite}
+.vid .ph .play::after{content:"";width:0;height:0;border-left:44px solid #fff;border-top:26px solid transparent;border-bottom:26px solid transparent;margin-left:10px}
+@keyframes breathe{50%{transform:scale(1.12);opacity:.75}}
+.vid .ph small{font-size:28px;color:#aab3cc;font-weight:500}
+.steps4{position:absolute;left:144px;top:262px;display:flex;align-items:center;gap:18px}
+.steps4 .arrow{font-family:Sora;font-size:40px;font-weight:300;color:var(--mute)}
+
+/* SVG 공통 */
+svg text{font-family:Pretendard,sans-serif}
+svg .en{font-family:Sora,Pretendard,sans-serif}
+.svg-ink{fill:var(--ink)} .svg-sub{fill:var(--sub)} .svg-mute{fill:var(--mute)} .svg-line{stroke:var(--line)} .svg-bar{fill:var(--bar)} .svg-soft{fill:var(--soft)}
+
+/* =========================================================
+   6. COVER / LOGO / FINALE
+   ========================================================= */
+.cover .chrome .logo,.logoslide .chrome .logo{visibility:hidden}
+.cover .logo.hero{position:absolute;left:0;right:0;top:330px;justify-content:center;font-size:190px}
+.slogan{position:absolute;left:0;right:0;top:640px;margin:0;text-align:center;font-size:80px;font-weight:800;letter-spacing:-.035em}
+.cover .pill{position:absolute;left:50%;bottom:110px;translate:-50% 0}
+.founders{position:absolute;left:144px;top:470px;width:1632px;display:grid;grid-template-columns:repeat(3,1fr);gap:32px;align-items:stretch}
+.founders .core{padding:26px 34px}
+.founders .nm{font-size:44px;font-weight:800;letter-spacing:-.03em;line-height:1.1}
+.founders .nm small{font-size:28px;font-weight:600;color:var(--mute);margin-left:10px}
+.founders .rl{font-size:30px;font-weight:700;margin-top:6px}
+.founders ul{margin:14px 0 0;padding:14px 0 0;border-top:1px solid var(--line);list-style:none;display:grid;gap:6px;font-size:26px;font-weight:500;color:var(--sub);line-height:1.3;white-space:nowrap}
+.founders li::before{content:"";display:inline-block;width:12px;height:12px;border-radius:50%;background:var(--grad);margin-right:12px;vertical-align:2px}
+.founders-key{position:absolute;left:144px;right:144px;top:928px;margin:0;text-align:center}
+html.static .cover .logo.hero{top:120px;font-size:118px}
+.slogan.alt{top:360px;font-size:64px;opacity:0;visibility:hidden}
+html.static .slogan:not(.alt){display:none}
+html.static .slogan.alt{opacity:1;visibility:visible}
+html.static .cover .pill{display:none}
+/* 06 로고 등장: 05 교집합의 색이 화면을 덮었다가 로고 고리로 줄어듦 */
+.lgfill{position:absolute;inset:0;background:linear-gradient(135deg,#12B5F5,#1E6BFF 50%,#B06CF5);z-index:6;pointer-events:none;clip-path:circle(0% at 57% 42%)}
+html.static .lgfill{display:none}
+.logoslide .logo.big{position:absolute;left:0;right:0;top:330px;justify-content:center;font-size:230px}
+.lgname{position:absolute;left:0;right:0;top:650px;margin:0;text-align:center;font-size:64px;font-weight:800;letter-spacing:-.03em}
+.finale{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:34px;z-index:5}
+.finale .logo{font-size:180px}
+.finale .eq{font-size:58px;font-weight:800;letter-spacing:-.035em;white-space:nowrap}
+.finale .eq .dash{display:none}
+
+/* =========================================================
+   7. TRANSITION + 요약 띄우기
+   ========================================================= */
+.blades{position:absolute;inset:0;z-index:50;pointer-events:none;overflow:hidden}
+.blade{position:absolute;left:-30%;width:160%;height:62%}
+.blade.a{top:-6%;background:linear-gradient(90deg,var(--sky),var(--brand))}
+.blade.b{bottom:-6%;background:linear-gradient(90deg,var(--brand),var(--violet))}
+/* 다음 장 직전: 하단 요약을 뒤를 흐리게 하고 가운데 크게 */
+.sumov{position:absolute;inset:0;z-index:40;display:grid;place-items:center;background:color-mix(in srgb,var(--slide-bg) 66%,transparent);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);visibility:hidden;opacity:0;pointer-events:none}
+.sumtx{margin:0;max-width:1500px;text-align:center;font-size:64px;font-weight:700;letter-spacing:-.03em;line-height:1.3;color:var(--ink);word-break:keep-all;text-wrap:balance}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <linearGradient id="r" x1="0" y1="1" x2="1" y2="0.1"><stop offset="0" stop-color="#12B5F5"/><stop offset=".5" stop-color="#1E6BFF"/><stop offset="1" stop-color="#B06CF5"/></linearGradient>
+  <linearGradient id="s" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#3D7BFF"/><stop offset="1" stop-color="#B06CF5"/></linearGradient>
+  <linearGradient id="lgh" gradientUnits="userSpaceOnUse" x1="500" y1="0" x2="780" y2="0"><stop offset="0" stop-color="#12B5F5"/><stop offset="1" stop-color="#B06CF5"/></linearGradient>
+  <linearGradient id="lgv" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#12B5F5"/><stop offset=".5" stop-color="#1E6BFF"/><stop offset="1" stop-color="#B06CF5"/></linearGradient>
+</defs></svg>
+
+<div class="deck-viewport"><div class="deck-stage" id="stage">
+
+<!-- ================= 01 표지 + 대표 소개 ================= -->
+<section class="slide cover" data-name="cover" data-pg="01" data-label="01 사업의 시작에, 웹오" data-sec="14">
+  <canvas class="dust" width="1920" height="1080"></canvas>
+  <div class="glow" style="--o:.32;width:820px;height:820px;left:-180px;top:-260px;background:var(--sky)"></div>
+  <div class="glow" style="--o:.32;width:900px;height:900px;right:-240px;bottom:-380px;background:var(--violet);animation-duration:21s"></div>
+  <div class="glow" style="--o:.16;width:640px;height:640px;left:640px;top:300px;background:var(--brand);animation-duration:24s"></div>
+  <i class="gl v" style="left:300px;top:0;height:1080px"></i><i class="gl v" style="left:1620px;top:0;height:1080px"></i>
+  <i class="gl h" style="top:250px;left:0;width:1920px"></i><i class="gl h" style="top:880px;left:0;width:1920px"></i>
+  <i class="node" style="left:300px;top:250px"></i><i class="node" style="left:1620px;top:880px"></i>
+  <div class="logo hero" data-logo="draw"></div>
+  <p class="slogan">누구나 원하는 웹페이지를, <span class="g">쉽고 저렴하게</span></p>
+</section>
+
+<!-- ================= 02 웹사이트가 필요한 누구나가 고객입니다 (시장 · 신규) ================= -->
+<section class="slide" data-name="mkt" data-pg="02" data-label="02 웹사이트가 필요한 누구나가 고객입니다" data-sec="39">
+  <div class="glow" style="--o:.14;width:800px;height:800px;left:-200px;top:300px;background:var(--sky)"></div>
+  <h2 class="ttl"><span class="m">웹사이트가 필요한</span> 누구나가 고객입니다</h2>
+  <div class="abs mk" style="left:144px;top:330px;width:880px" data-step="1" data-fx="rise">
+    <div class="lb">국내 소상공인</div>
+    <div class="n" style="font-size:120px"><span class="g"><span data-count>613.4</span><small style="font-size:56px">만 개</small></span></div>
+  </div>
+  <div class="abs mk" style="left:144px;top:620px;width:880px" data-step="1" data-fx="rise" data-at=".3">
+    <div class="lb">연 시장 규모 · TAM</div>
+    <div class="n" style="font-size:88px">6,692<small style="font-size:48px">억</small> ~ 2.65<small style="font-size:48px">조 원</small></div>
+  </div>
+  <div class="abs mk" style="left:1120px;top:330px;width:656px" data-step="2" data-fx="fade"><div class="lb">글로벌 웹사이트 빌더 시장</div></div>
+  <div class="abs" style="left:1120px;top:404px;width:656px;text-align:center" data-step="2" data-fx="punch" data-at=".9"><span class="tag" style="font-size:var(--fs-body);padding:8px 22px">연 16.6% 성장</span></div>
+  <div class="abs chart" style="left:1208px;top:560px;width:480px;height:300px">
+    <div class="bar" data-step="2" data-fx="grow" style="left:0;width:180px;height:140px"></div><div class="v" data-step="2" data-fx="rise" data-at=".3" style="left:0;width:180px;bottom:152px">$3.57B</div><div class="y" data-step="2" data-fx="fade" style="left:0;width:180px">2026</div>
+    <div class="bar us" data-step="2" data-fx="grow" data-at=".15" style="left:300px;width:180px;height:300px"></div><div class="v" data-step="2" data-fx="rise" data-at=".45" style="left:300px;width:180px;bottom:312px"><span class="g">$7.67B</span></div><div class="y us" data-step="2" data-fx="fade" style="left:300px;width:180px">2031</div>
+  </div>
+</section>
+
+<!-- ================= 03 사업은 더 빠르게 디지털로 이동합니다 ================= -->
+<section class="slide" data-name="s02" data-pg="03" data-label="03 사업은 더 빠르게 디지털로 이동합니다" data-sec="41">
+  <div class="glow" style="--o:.14;width:800px;height:800px;right:-260px;top:-300px;background:var(--violet)"></div>
+  <h2 class="ttl"><span class="m">사업은 더 빠르게</span> 디지털로 이동합니다</h2>
+  <div class="abs stat" style="left:144px;top:360px;width:660px" data-step="1" data-fx="rise">
+    <span class="lb">생활업종 사업자</span>
+    <span class="n"><span class="g"><span data-count>313.2</span><small>만 명</small></span></span>
+  </div>
+  <div class="abs stat" style="left:144px;top:590px;width:740px" data-step="2" data-fx="rise">
+    <span class="lb">디지털·AI 쓰는 소상공인</span>
+    <span class="n"><span data-count>80.0</span><small>%</small></span>
+  </div>
+  <div class="abs bars" style="left:900px;top:360px;width:820px">
+    <p class="body" style="margin-bottom:22px" data-step="2" data-fx="fade" data-at=".3"><b>분야별 활용</b></p>
+    <div class="row" style="grid-template-columns:200px 440px 130px;margin-bottom:18px" data-step="2" data-fx="rise" data-at=".4"><span class="lab">경영지원</span><div class="track" style="width:440px"><div class="fill" data-grow="x" style="width:440px"></div></div><span class="val" style="font-size:40px"><span data-count>54.5</span><small>%</small></span></div>
+    <div class="row" style="grid-template-columns:200px 440px 130px;margin-bottom:18px" data-step="2" data-fx="rise" data-at=".55"><span class="lab">고객 응대</span><div class="track" style="width:440px"><div class="fill" data-grow="x" style="width:257px"></div></div><span class="val" style="font-size:40px"><span data-count>31.8</span><small>%</small></span></div>
+    <div class="row" style="grid-template-columns:200px 440px 130px;margin-bottom:18px" data-step="2" data-fx="rise" data-at=".7"><span class="lab us">판매·유통</span><div class="track" style="width:440px"><div class="fill us" data-grow="x" style="width:180px"></div></div><span class="val" style="font-size:40px"><span class="g"><span data-count>22.3</span><small>%</small></span></span></div>
+    <div class="row" style="grid-template-columns:200px 440px 130px;margin-bottom:18px" data-step="2" data-fx="rise" data-at=".85"><span class="lab us">마케팅·홍보</span><div class="track" style="width:440px"><div class="fill us" data-grow="x" style="width:172px"></div></div><span class="val" style="font-size:40px"><span class="g"><span data-count>21.3</span><small>%</small></span></span></div>
+    <div data-step="2" data-fx="punch" data-at="1.4"><span class="tag" style="font-size:var(--fs-body);padding:8px 24px">판매·홍보는 4곳 중 1곳 미만</span></div>
+  </div>
+  <div class="abs quote" style="left:144px;top:840px;width:1632px;box-sizing:border-box;text-align:center" data-step="3" data-fx="words" data-sum><p class="key" style="font-size:48px;margin:0">웹사이트 제작과 운영은 <span class="g">충분히 쉬워졌는가</span></p></div>
+</section>
+
+<!-- ================= 04 제작비에, 기다리는 시간까지 ================= -->
+<section class="slide" data-name="s03" data-pg="04" data-label="04 제작비에, 기다리는 시간까지" data-sec="28">
+  <div class="glow" style="--o:.14;width:800px;height:800px;left:-200px;top:300px;background:var(--sky)"></div>
+  <h2 class="ttl"><span class="m">제작비에,</span> 기다리는 시간까지</h2>
+  <div class="abs stat" style="left:144px;top:370px;width:760px" data-step="1" data-fx="rise">
+    <span class="lb">피부과 홈페이지 · 피코소프트</span>
+    <span class="n"><span data-count>298</span><small>만원</small></span>
+  </div>
+  <div class="abs stat" style="left:144px;top:630px;width:820px" data-step="2" data-fx="rise">
+    <span class="lb">원페이지 · LOOP8</span>
+    <span class="n"><span data-count>300</span><small>만원 내외</small> <span class="pre" style="margin-left:18px;color:var(--sub)">·</span> <span data-count>2</span>~<span data-count>3</span><small>주</small></span>
+  </div>
+  <svg class="abs" style="left:1000px;top:340px" width="776" height="600" viewBox="0 0 776 600" aria-hidden="true">
+    <circle data-step="3" data-fx="draw" cx="388" cy="300" r="210" fill="none" stroke="url(#lgv)" stroke-width="5" stroke-linecap="round"/>
+    <path data-step="3" data-fx="draw" data-at=".9" d="M598 300 l-18 -26 M598 300 l18 -26" fill="none" stroke="url(#lgv)" stroke-width="5" stroke-linecap="round"/>
+    <g data-step="3" data-fx="pop" data-at=".3"><circle cx="388" cy="90" r="46" fill="url(#lgv)"/><text x="388" y="100" text-anchor="middle" font-size="30" font-weight="700" fill="#fff">요청</text></g>
+    <g data-step="3" data-fx="pop" data-at=".55"><circle cx="598" cy="300" r="46" fill="url(#lgv)"/><text x="598" y="310" text-anchor="middle" font-size="30" font-weight="700" fill="#fff">견적</text></g>
+    <g data-step="3" data-fx="pop" data-at=".8"><circle cx="388" cy="510" r="46" fill="url(#lgv)"/><text x="388" y="520" text-anchor="middle" font-size="30" font-weight="700" fill="#fff">대기</text></g>
+    <g data-step="3" data-fx="pop" data-at="1.05"><circle cx="178" cy="300" r="46" fill="url(#lgv)"/><text x="178" y="310" text-anchor="middle" font-size="30" font-weight="700" fill="#fff">반영</text></g>
+    <g data-step="3" data-fx="rise" data-at="1.3"><text class="svg-ink" x="388" y="286" text-anchor="middle" font-size="44" font-weight="800" letter-spacing="-1">바꿀 때마다</text><text class="svg-sub" x="388" y="338" text-anchor="middle" font-size="32" font-weight="500">외부 일정에 의존</text></g>
+  </svg>
+</section>
+
+<!-- ================= 05 쉬운 생성 이후에도, 디자인의 선택은 남습니다 ================= -->
+<section class="slide" data-name="s04" data-pg="05" data-label="05 쉬운 생성 이후에도, 디자인의 선택은 남습니다" data-sec="33">
+  <div class="glow" style="--o:.12;width:760px;height:760px;right:-200px;top:300px;background:var(--brand)"></div>
+  <h2 class="ttl"><span class="m">쉬운 생성 이후에도,</span> 디자인의 선택은 남습니다</h2>
+  <svg class="abs" style="left:144px;top:340px" width="760" height="600" viewBox="0 0 760 600" aria-hidden="true">
+    <g class="wire">
+    <rect class="frame" data-step="0" data-fx="draw" data-at=".5" x="2" y="2" width="520" height="596" rx="22" style="fill:none;stroke:var(--line);stroke-width:3"/>
+    <rect data-step="0" data-fx="growx" data-at=".9" x="36" y="36" width="452" height="34" rx="8" class="svg-bar"/>
+    <rect data-step="0" data-fx="drop" data-at="1.1" x="36" y="96" width="452" height="150" rx="14" fill="url(#lgv)" style="opacity:.85"/>
+    <g class="blk" data-step="0" data-fx="rise" data-at="1.3"><rect x="36" y="276" width="140" height="150" rx="14" class="svg-bar"/></g>
+    <g class="blk" data-step="0" data-fx="rise" data-at="1.4"><rect x="192" y="276" width="140" height="150" rx="14" class="svg-bar"/></g>
+    <g class="blk" data-step="0" data-fx="rise" data-at="1.5"><rect x="348" y="276" width="140" height="150" rx="14" class="svg-bar"/></g>
+    <rect data-step="0" data-fx="growx" data-at="1.7" x="36" y="456" width="300" height="26" rx="8" class="svg-bar"/>
+    <rect data-step="0" data-fx="growx" data-at="1.8" x="36" y="500" width="220" height="26" rx="8" class="svg-bar"/>
+    <rect class="frame" data-step="0" data-fx="draw" data-at="1.2" x="580" y="120" width="176" height="360" rx="26" style="fill:none;stroke:var(--line);stroke-width:3"/>
+    <g data-step="0" data-fx="rise" data-at="1.9"><rect x="604" y="150" width="128" height="80" rx="10" fill="url(#lgv)" style="opacity:.85"/></g>
+    <g data-step="0" data-fx="rise" data-at="2"><rect x="604" y="246" width="128" height="60" rx="10" class="svg-bar"/></g>
+    <g data-step="0" data-fx="rise" data-at="2.1"><rect x="604" y="322" width="128" height="60" rx="10" class="svg-bar"/></g>
+    <g data-step="0" data-fx="rise" data-at="2.2"><rect x="604" y="398" width="128" height="60" rx="10" class="svg-bar"/></g>
+    </g>
+  </svg>
+  <div class="abs" style="left:960px;top:340px;width:816px">
+    <div data-step="1" data-fx="rise" style="display:flex;align-items:center;gap:18px"><span class="tag ok">낮아진 진입 부담</span><p class="body" style="font-size:30px;white-space:nowrap"><b>아임웹 · 카페24</b> · AI 생성·편집</p></div>
+    <p class="key" style="margin-top:30px" data-step="2" data-fx="words">그래도 남는 <span class="g">고객의 판단과 편집</span></p>
+    <div class="rows tight" style="margin-top:22px">
+      <div class="r" data-step="3" data-fx="flip"><div><div class="h">정보 배치</div></div></div>
+      <div class="r" data-step="3" data-fx="flip" data-at=".15"><div><div class="h">브랜드에 맞는 구성</div></div></div>
+      <div class="r" data-step="3" data-fx="flip" data-at=".3"><div><div class="h">모바일 표현</div></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 06 비용을 맡기거나, 시간을 쓰거나 (벤다이어그램 → 교집합 클로즈업) ================= -->
+<section class="slide" data-name="s05" data-pg="06" data-label="06 비용을 맡기거나, 시간을 쓰거나" data-sec="15">
+  <div class="glow" style="--o:.14;width:900px;height:900px;left:510px;top:200px;background:var(--brand)"></div>
+  <h2 class="ttl">비용을 맡기거나, <span class="m">시간을 쓰거나</span></h2>
+  <svg class="abs venn" style="left:144px;top:250px" width="1632" height="640" viewBox="0 0 1632 640" aria-hidden="true">
+    <defs><clipPath id="lensL"><circle cx="626" cy="320" r="300"/></clipPath></defs>
+    <g class="vl" data-step="0" data-fx="none"><circle class="ring" cx="626" cy="320" r="300" fill="none" stroke-width="4" style="stroke:var(--mute)"/>
+      <text class="svg-ink" x="516" y="314" text-anchor="middle" font-size="64" font-weight="800" letter-spacing="-2">대행</text>
+      <text class="svg-sub" x="516" y="372" text-anchor="middle" font-size="38" font-weight="500">비용 · 일정 부담</text></g>
+    <g class="vr" data-step="0" data-fx="none"><circle class="ring" cx="1006" cy="320" r="300" fill="none" stroke-width="4" style="stroke:var(--mute)"/>
+      <text class="svg-ink" x="1116" y="314" text-anchor="middle" font-size="64" font-weight="800" letter-spacing="-2">직접 제작</text>
+      <text class="svg-sub" x="1116" y="372" text-anchor="middle" font-size="38" font-weight="500">설계 · 편집 시간</text></g>
+    <g class="lens" data-step="1" data-fx="fade"><circle cx="1006" cy="320" r="300" fill="url(#lgv)" clip-path="url(#lensL)" opacity=".92"/></g>
+  </svg>
+  <p class="abs key" style="left:144px;top:920px;width:1632px;text-align:center" data-step="2" data-fx="words" data-sum data-at=".4">두 부담을 <span class="g">함께 줄이는 출발점</span></p>
+</section>
+
+<!-- ================= 07 웹오 로고 등장 (05 교집합에서 이어짐) ================= -->
+<section class="slide logoslide" data-name="logo" data-pg="07" data-label="07 웹오" data-sec="8">
+  <div class="glow" style="--o:.22;width:900px;height:900px;left:-200px;bottom:-400px;background:var(--sky)"></div>
+  <div class="glow" style="--o:.22;width:900px;height:900px;right:-200px;top:-300px;background:var(--violet);animation-duration:22s"></div>
+  <div class="logo big" data-logo="draw"></div>
+  <p class="lgname">웹오</p>
+  <div class="lgfill"></div>
+</section>
+
+<!-- ================= 08 설계를 먼저. AI는 필요한 만큼. ================= -->
+<section class="slide" data-name="s07" data-pg="08" data-label="08 설계를 먼저. AI는 필요한 만큼." data-sec="35">
+  <div class="glow" style="--o:.12;width:800px;height:800px;left:560px;top:-300px;background:var(--violet)"></div>
+  <h2 class="ttl">설계를 먼저. <span class="g">AI는 필요한 만큼.</span></h2>
+  <div class="abs" style="left:144px;top:330px;width:560px" data-out="2">
+    <div data-step="0" data-fx="rise"><span class="tag en">WEBO TEAM</span></div>
+    <div class="pts" style="margin-top:26px">
+      <div class="p" data-step="1" data-fx="rise"><div class="h">트렌디한 디자인</div></div>
+      <div class="p" data-step="1" data-fx="rise" data-at=".15"><div class="h">맞춤형 템플릿 추천</div></div>
+    </div>
+  </div>
+  <div class="tpl" style="left:1016px;top:300px;width:760px" data-step="1" data-fx="tilt" data-at=".1">
+    <div class="scr"><img src="assets/templates/t1.webp" alt="웹오 템플릿 시안 1"><img src="assets/templates/t2.webp" alt="웹오 템플릿 시안 2"><img src="assets/templates/t3.webp" alt="웹오 템플릿 시안 3"><img src="assets/templates/t4.webp" alt="웹오 템플릿 시안 4"><img src="assets/templates/t5.webp" alt="웹오 템플릿 시안 5"><img src="assets/templates/t6.webp" alt="웹오 템플릿 시안 6"></div>
+    <span style="position:absolute;right:10px;bottom:8px;font-size:13px;font-weight:600;line-height:1;color:rgba(255,255,255,.8);background:rgba(11,19,48,.38);padding:4px 7px;border-radius:6px">AI 이미지</span>
+  </div>
+  <div class="abs" style="left:1016px;top:330px;width:760px">
+    <div data-step="2" data-fx="rise"><span class="tag en">AI</span></div>
+    <div class="pts" style="margin-top:26px">
+      <div class="p" data-step="2" data-fx="rise" data-at=".15"><div class="h">고객 정보 반영</div></div>
+      <div class="p" data-step="2" data-fx="rise" data-at=".3"><div class="h">사전 설계 기반</div></div>
+    </div>
+  </div>
+  <p class="abs key" style="left:144px;top:850px;width:1632px;text-align:center;font-size:44px" data-step="3" data-fx="words" data-sum data-focus>불필요한 AI 추론을 덜어, <span class="g">비용과 품질을 함께 개선</span></p>
+</section>
+
+<!-- ================= 09 만들고. 고치고. 게시하고. (시연 영상) ================= -->
+<section class="slide" data-name="demo" data-pg="09" data-label="09 만들고. 고치고. 게시하고. (시연)" data-sec="120" data-blade data-plain>
+  <h2 class="ttl">만들고. 고치고. <span class="g">게시하고.</span></h2>
+  <div class="steps4" data-step="0" data-fx="rows" data-at=".3">
+    <span class="pill" style="font-size:var(--fs-cap);padding:8px 24px"><span class="dot"></span>온보딩</span><span class="arrow">→</span>
+    <span class="pill" style="font-size:var(--fs-cap);padding:8px 24px"><span class="dot"></span>웹사이트 생성</span><span class="arrow">→</span>
+    <span class="pill" style="font-size:var(--fs-cap);padding:8px 24px"><span class="dot"></span>편집</span><span class="arrow">→</span>
+    <span class="pill" style="font-size:var(--fs-cap);padding:8px 24px"><span class="dot"></span>배포</span>
+  </div>
+  <div class="vid" id="vid" title="클릭: 영상 파일 선택">
+    <!-- assets/demo.mp4 가 있으면 장에 들어갈 때 화면 가득 자동 재생 · 없으면 이 영역을 클릭해 파일 선택 -->
+    <video src="assets/demo.mp4" preload="auto" playsinline></video>
+    <div class="ph"><span class="play"></span>시연 영상 자리<small>assets/demo.mp4 를 넣거나 여기를 눌러 파일 선택</small></div>
+    <input type="file" accept="video/*" id="vidFile" hidden>
+  </div>
+</section>
+
+<!-- ================= 10 시스템 구조와 인프라 ================= -->
+<section class="slide" data-name="s09" data-pg="10" data-label="10 시스템 구조와 인프라" data-sec="35">
+  <div class="glow" style="--o:.12;width:800px;height:800px;right:-300px;top:-200px;background:var(--sky)"></div>
+  <h2 class="ttl"><span class="m">시스템 구조와</span> 인프라</h2>
+  <div data-step="1" data-fx="rise">
+    <div class="iso hot" style="left:144px;top:282px;width:700px;height:232px;flex-direction:row;gap:26px">
+      <svg width="176" height="176" viewBox="0 0 176 176" aria-hidden="true">
+        <defs><radialGradient id="gl9" cx=".34" cy=".3" r=".78"><stop offset="0" stop-color="#7fd8ff"/><stop offset=".45" stop-color="#1E6BFF"/><stop offset="1" stop-color="#5a2fc0"/></radialGradient>
+        <radialGradient id="gh9" cx=".32" cy=".26" r=".4"><stop offset="0" stop-color="#fff" stop-opacity=".85"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient></defs>
+        <ellipse cx="88" cy="164" rx="58" ry="8" fill="#1E6BFF" opacity=".18"/>
+        <circle cx="88" cy="84" r="66" fill="url(#gl9)"/>
+        <g fill="none" stroke="#fff" stroke-opacity=".45" stroke-width="2"><ellipse cx="88" cy="84" rx="66" ry="22"/><ellipse cx="88" cy="84" rx="66" ry="46"/><ellipse cx="88" cy="84" rx="26" ry="66"/><ellipse cx="88" cy="84" rx="50" ry="66"/><path d="M22 84h132M88 18v132"/></g>
+        <circle cx="88" cy="84" r="66" fill="url(#gh9)"/>
+        <ellipse cx="88" cy="84" rx="86" ry="26" fill="none" stroke="#B06CF5" stroke-width="3" stroke-dasharray="6 7" transform="rotate(-18 88 84)"/>
+        <g fill="#fff" stroke="#1E6BFF" stroke-width="3"><circle cx="12" cy="104" r="7"/><circle cx="164" cy="62" r="7"/><circle cx="118" cy="122" r="6"/></g>
+      </svg>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:6px"><div class="n" style="font-size:34px">손님 사이트</div><div class="s">Cloudflare Workers · KV · R2</div></div>
+    </div>
+  </div>
+  <div data-step="1" data-fx="rise" data-at=".12">
+    <div class="iso" style="left:868px;top:282px;width:250px;height:232px"><span class="xp-ic"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/></svg></span><div class="n">관리 화면</div><div class="s">Workers 정적 자산</div></div>
+  </div>
+  <span class="arw s9" style="left:1122px;top:382px" data-step="1" data-fx="fade" data-at=".3">→</span>
+  <div data-step="1" data-fx="rise" data-at=".24">
+    <div class="iso" style="left:1142px;top:282px;width:390px;height:232px"><span class="xp-ic"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="7" rx="2"/><rect x="3" y="13" width="18" height="7" rx="2"/><path d="M7 7.5h.01M7 16.5h.01"/></svg></span><div class="n">API 서버</div><div class="s">FastAPI · PostgreSQL</div></div>
+  </div>
+  <span class="arw s9" style="left:1536px;top:382px" data-step="1" data-fx="fade" data-at=".4">→</span>
+  <div data-step="1" data-fx="rise" data-at=".36">
+    <div class="iso" style="left:1556px;top:282px;width:220px;height:232px"><span class="xp-ic"><svg viewBox="0 0 24 24"><path d="M12 3l1.8 4.7 4.7 1.8-4.7 1.8L12 16l-1.8-4.7-4.7-1.8 4.7-1.8z"/><path d="M19 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8 2-.8z"/></svg></span><div class="n">AI</div><div class="s">글 · 사진 API</div></div>
+  </div>
+  <svg class="abs" style="left:144px;top:530px" width="1632" height="44" viewBox="0 0 1632 44" aria-hidden="true">
+    <path data-step="1" data-fx="draw" data-at=".6" d="M1193 0 V30 H350 V8" fill="none" stroke="url(#lgv)" stroke-width="3" stroke-linecap="round"/>
+    <path data-step="1" data-fx="draw" data-at="1" d="M338 20 L350 6 L362 20" fill="none" stroke="url(#lgv)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+    <text class="svg-sub" data-step="1" data-fx="fade" data-at="1" x="770" y="22" text-anchor="middle" font-size="22" font-weight="700">발행</text>
+  </svg>
+  <p class="lane" style="left:144px;top:584px" data-step="2" data-fx="fade">개발 · 배포</p>
+  <div data-step="2" data-fx="rows" data-at=".1" style="position:absolute;left:144px;top:620px;width:1632px;height:140px">
+    <div class="iso sm" style="left:0;top:0;width:260px;height:140px"><span class="xp-ic"><svg viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v14c0 1.7 3.6 3 8 3s8-1.3 8-3V5"/><path d="M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3"/></svg></span><div class="n">개발 DB</div></div>
+    <span class="arw s9" style="left:270px;top:54px">→</span>
+    <div class="iso sm" style="left:304px;top:0;width:330px;height:140px"><span class="xp-ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M8 12.5l2.5 2.5L16 9.5"/></svg></span><div class="n">GitLab CI 시험</div></div>
+    <span class="arw s9" style="left:644px;top:54px">→</span>
+    <div class="iso sm" style="left:678px;top:0;width:190px;height:140px"><span class="xp-ic"><svg viewBox="0 0 24 24"><circle cx="6" cy="5" r="2"/><circle cx="6" cy="19" r="2"/><circle cx="18" cy="12" r="2"/><path d="M6 7v10M6 9c0 3 4 3 10 3"/></svg></span><div class="n">병합</div></div>
+    <span class="arw s9" style="left:878px;top:54px">→</span>
+    <div class="iso sm" style="left:912px;top:0;width:330px;height:140px"><span class="xp-ic"><svg viewBox="0 0 24 24"><path d="M12 15V4M7 9l5-5 5 5"/><path d="M5 15v3a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-3"/></svg></span><div class="n">운영 서버 배포</div></div>
+    <span class="arw s9" style="left:1252px;top:54px">→</span>
+    <div class="iso sm" style="left:1286px;top:0;width:346px;height:140px"><span class="xp-ic"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="5" rx="1"/><path d="M5 9v9a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V9M10 13h4"/></svg></span><div class="n">정기 백업</div></div>
+  </div>
+  <div data-step="3" data-fx="rise">
+    <div class="iso sm" style="left:144px;top:790px;width:1632px;height:84px;flex-direction:row;gap:22px"><span class="xp-ic"><svg viewBox="0 0 24 24"><path d="M3 20h18M6 16v-4M11 16V8M16 16v-6M21 4l-5 5-5-3-6 5"/></svg></span><div class="n" style="margin:0">운영 지표</div><div class="t">방문자 트래픽 그래프</div>
+      <svg width="220" height="44" viewBox="0 0 220 44" aria-hidden="true"><path d="M2 36 L30 30 L54 34 L80 20 L106 26 L132 12 L160 18 L186 6 L218 10" fill="none" stroke="url(#lgv)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+  </div>
+  <p class="abs key" style="left:144px;top:900px;width:1632px;text-align:center;font-size:44px" data-step="3" data-fx="words" data-at=".3" data-sum>유지보수와 <span class="g">트래픽 관리가 쉬운 구조</span></p>
+</section>
+
+<!-- ================= 11 AI가 할 일과, 규칙이 할 일을 나눴습니다 (기술 스택) ================= -->
+<section class="slide" data-name="s10" data-pg="11" data-label="11 AI가 할 일과, 규칙이 할 일을 나눴습니다" data-sec="45">
+  <div class="glow" style="--o:.12;width:900px;height:900px;left:500px;top:300px;background:var(--brand)"></div>
+  <h2 class="ttl"><span class="m">AI가 할 일과,</span> 규칙이 할 일을 나눴습니다</h2>
+  <div class="pipe" style="left:144px;top:340px;width:1632px">
+    <div class="rail" data-step="0" data-fx="growx"></div>
+    <div class="st" data-step="1" data-fx="rise"><div class="no"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 9v12"/></svg><b class="en">1</b></div><div class="lab">사전 레이아웃</div><div class="stack">React · TypeScript</div></div>
+    <div class="st" data-step="2" data-fx="rise"><div class="no"><svg viewBox="0 0 24 24"><path d="M12 3l9 5-9 5-9-5z"/><path d="M3 13l9 5 9-5"/></svg><b class="en">2</b></div><div class="lab">작업 분리</div><div class="stack">FastAPI · 작업 큐</div></div>
+    <div class="st" data-step="3" data-fx="rise"><div class="no"><svg viewBox="0 0 24 24"><path d="M12 3l8 3v6c0 4.5-3.4 8.3-8 9-4.6-.7-8-4.5-8-9V6z"/><path d="M8.5 12l2.5 2.5 4.5-5"/></svg><b class="en">3</b></div><div class="lab">검증</div><div class="stack">스키마 · 규칙 검사</div></div>
+    <div class="st" data-step="4" data-fx="rise"><div class="no"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.6 3.8 5.6 3.8 9s-1.3 6.4-3.8 9c-2.5-2.6-3.8-5.6-3.8-9S9.5 5.6 12 3z"/></svg><b class="en">4</b></div><div class="lab">엣지 제공</div><div class="stack">Workers · R2 · KV</div></div>
+  </div>
+  <div class="abs" style="left:144px;top:640px;width:1632px;display:grid;gap:20px">
+    <div class="bz dim" data-step="5" data-fx="rise"><div class="core" style="padding:24px 36px"><span class="body" style="white-space:nowrap"><b>법령 기반 AI 검수</b> → 사장님 승인 → 배포</span></div></div>
+    <div class="bz dim" data-step="5" data-fx="rise" data-at=".15"><div class="core" style="padding:24px 36px"><span class="body" style="white-space:nowrap"><b>위반 발견 시</b> 수정 제안</span></div></div>
+  </div>
+</section>
+
+<!-- ================= 12 게시 전에, 업종 법령부터 검증합니다 (AI 검수) ================= -->
+<section class="slide" data-name="s11r" data-pg="12" data-label="12 게시 전에, 업종 법령부터 검증합니다" data-sec="43">
+  <div class="glow" style="--o:.12;width:800px;height:800px;left:-200px;top:300px;background:var(--sky)"></div>
+  <h2 class="ttl"><span class="m">게시 전에,</span> 업종 법령부터 검증합니다</h2>
+  <div class="flow11" data-step="1" data-fx="rows"><i class="l11"></i>
+  <div class="f11" style="left:0px"><span class="ic"><svg viewBox="0 0 24 24"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/><path d="M8.5 11h7M8.5 14h4.5"/></svg></span><div class="n">말로 고침</div></div>
+  <div class="f11" style="left:326px"><span class="ic"><svg viewBox="0 0 24 24"><path d="M12 3v18M7 21h10"/><path d="M5 7h14"/><path d="M5 7l-3 6a3 3 0 0 0 6 0z"/><path d="M19 7l-3 6a3 3 0 0 0 6 0z"/></svg></span><div class="n">법령 검사</div></div>
+  <div class="f11 hot" style="left:653px"><span class="ic"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="M20.5 20.5l-4.6-4.6"/><path d="M8.5 11l1.8 1.8 3.4-3.6"/></svg></span><div class="n">검토 AI</div></div>
+  <div class="f11" style="left:979px"><span class="ic"><svg viewBox="0 0 24 24"><path d="M12 3l7 3v5c0 4.5-3 8.3-7 10-4-1.7-7-5.5-7-10V6z"/><path d="M9 12l2.2 2.2L15.5 10"/></svg></span><div class="n">판정</div></div>
+  <div class="f11" style="left:1306px"><span class="ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.6 2.7 4 5.9 4 9s-1.4 6.3-4 9c-2.6-2.7-4-5.9-4-9s1.4-6.3 4-9z"/></svg></span><div class="n">동의 후 게시</div></div>
+  </div>
+  <div class="vd2" style="left:144px;top:580px;width:522px" data-step="2" data-fx="rise"><span class="vic bad"><svg viewBox="0 0 24 24"><path d="M7 7l10 10M17 7L7 17"/></svg></span><div class="lb bad">막음</div><div class="smp">여드름 <span class="mk-bad">치료</span> 프로그램</div></div>
+  <div class="vd2" style="left:699px;top:580px;width:522px" data-step="2" data-fx="rise" data-at=".15"><span class="vic warn"><svg viewBox="0 0 24 24"><path d="M12 6v8M12 18h.01"/></svg></span><div class="lb warn">의심</div><div class="smp"><span class="mk-warn">원장 경력 15년</span></div></div>
+  <div class="vd2" style="left:1254px;top:580px;width:522px" data-step="2" data-fx="rise" data-at=".3"><span class="vic ok"><svg viewBox="0 0 24 24"><path d="M6 12.5l4 4L18 8"/></svg></span><div class="lb ok">통과</div><div class="smp">1:1 맞춤 보습 관리</div></div>
+  <p class="abs key" style="left:144px;top:850px;width:1632px;text-align:center;font-size:44px" data-step="3" data-fx="words" data-sum data-focus>다른 빌더는 보증하지 않는 AI 문장, <span class="g">웹오는 게시 전에 검증합니다</span></p>
+</section>
+
+<!-- ================= 13 잘 아는 시장에서 먼저 증명합니다 ================= -->
+<section class="slide" data-name="s11" data-pg="13" data-label="13 잘 아는 시장에서 먼저 증명합니다" data-sec="46">
+  <div class="glow" style="--o:.12;width:800px;height:800px;right:-200px;top:200px;background:var(--violet)"></div>
+  <h2 class="ttl"><span class="m">잘 아는 시장에서</span> 먼저 증명합니다</h2>
+  <div class="abs" style="left:144px;top:300px;font-size:var(--fs-cap);font-weight:600;color:var(--sub)" data-step="1" data-fx="fade">피부관리업 사업자 · 국세청</div>
+  <div class="abs chart" style="left:184px;top:500px;width:380px;height:240px">
+    <div class="bar" data-step="1" data-fx="grow" style="left:0;width:160px;height:191px"></div><div class="v" data-step="1" data-fx="rise" data-at=".3" style="left:0;width:160px;bottom:203px"><span data-count>70,186</span></div><div class="y" data-step="1" data-fx="fade" style="left:0;width:160px">2025.07</div>
+    <div class="bar us" data-step="1" data-fx="grow" data-at=".15" style="left:220px;width:160px;height:200px"></div><div class="v" data-step="1" data-fx="rise" data-at=".45" style="left:220px;width:160px;bottom:212px"><span class="g"><span data-count>73,553</span></span></div><div class="y us" data-step="1" data-fx="fade" style="left:220px;width:160px">2026.07</div>
+    <div class="abs" data-step="1" data-fx="punch" data-at=".9" style="left:0;width:380px;top:-104px;text-align:center"><span class="tag" style="font-size:var(--fs-body);padding:8px 22px">+4.8%</span></div>
+  </div>
+  <div class="abs" style="left:780px;top:300px;font-size:var(--fs-cap);font-weight:600;color:var(--sub)" data-step="2" data-fx="fade">피부과 의원 · 심평원 신고 기준</div>
+  <div class="abs chart" style="left:800px;top:500px;width:480px;height:240px">
+    <div class="bar" data-step="2" data-fx="grow" style="left:0;width:140px;height:230px"></div><div class="v" data-step="2" data-fx="rise" data-at=".3" style="left:0;width:140px;bottom:242px"><span data-count>1,481</span></div><div class="y" data-step="2" data-fx="fade" style="left:0;width:140px">2024 Q4</div>
+    <div class="bar" data-step="2" data-fx="grow" data-at=".15" style="left:170px;width:140px;height:235px"></div><div class="v" data-step="2" data-fx="rise" data-at=".45" style="left:170px;width:140px;bottom:247px"><span data-count>1,516</span></div><div class="y" data-step="2" data-fx="fade" style="left:170px;width:140px">2025 Q4</div>
+    <div class="bar us" data-step="2" data-fx="grow" data-at=".3" style="left:340px;width:140px;height:240px"></div><div class="v" data-step="2" data-fx="rise" data-at=".6" style="left:340px;width:140px;bottom:252px"><span class="g"><span data-count>1,546</span></span></div><div class="y us" data-step="2" data-fx="fade" style="left:340px;width:140px">2026 Q2</div>
+  </div>
+  <div class="abs" style="left:1330px;top:300px;width:446px" data-step="3" data-fx="tilt">
+    <div class="bz hot beam"><div class="core stat" style="padding:22px 30px"><span class="lb">2026년 합산 모수</span><span class="n"><span class="g"><span data-count>75,099</span><small>곳</small></span></span></div></div>
+  </div>
+  <div class="abs" style="left:1330px;top:580px;width:446px" data-step="4" data-fx="rise"><span class="tag">팀 현장 경험</span><div class="xp-card"><div class="xp-row"><span class="xp-ic"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="4"/><path d="M12 8v8M8 12h8"/></svg></span>병원 웹사이트 제작</div><div class="xp-row"><span class="xp-ic"><svg viewBox="0 0 24 24"><path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/><path d="M10 20v-5h4v5"/></svg></span>인테리어 현장</div><div class="xp-row"><span class="xp-ic"><svg viewBox="0 0 24 24"><path d="M3 11v2a1 1 0 0 0 1 1h3l5 4V6L7 10H4a1 1 0 0 0-1 1z"/><path d="M16 8.5a5 5 0 0 1 0 7"/><path d="M19 6a9 9 0 0 1 0 12"/></svg></span>마케팅 실무</div></div></div>
+  <div class="bz dim abs" style="left:144px;top:850px;width:1632px" data-step="5" data-fx="rise"><div class="core" style="padding:18px 34px;display:flex;gap:24px;align-items:center"><span class="tag">최근 신호</span><span class="body" style="font-size:30px;white-space:nowrap">서울 1인 의원 피부과 <b>3,319곳</b> · 2025년 일반의 신규 개원 <b>85.3%</b> 피부과</span></div></div>
+</section>
+
+<!-- ================= 14 필요한 레이아웃에서 시작합니다 (요금제 표) ================= -->
+<section class="slide" data-name="s12" data-pg="14" data-label="14 필요한 레이아웃에서 시작합니다" data-sec="36">
+  <div class="glow" style="--o:.12;width:800px;height:800px;left:600px;top:-300px;background:var(--violet)"></div>
+  <h2 class="ttl">필요한 <span class="g">레이아웃</span>에서 시작합니다</h2>
+  <table class="tbl" style="left:144px;top:300px;width:1632px" data-step="0" data-fx="rows">
+    <colgroup><col style="width:520px"><col><col><col></colgroup>
+    <thead><tr><th>구분</th><th class="c en">STARTER</th><th class="c en">PLUS</th><th class="c en hot">PREMIUM</th></tr></thead>
+    <tbody>
+      <tr><th>초기 제작비</th><td class="c">없음</td><td class="c">없음</td><td class="c hot">30만원</td></tr>
+      <tr><th>월 이용료</th><td class="c"><span class="en">1</span>만원</td><td class="c"><span class="en">2.9</span>만원</td><td class="c hot"><span class="g"><span class="en">10</span>만원</span></td></tr>
+      <tr><th>레이아웃</th><td class="c">기본</td><td class="c">확장</td><td class="c hot">상위</td></tr>
+      <tr><th>웹사이트 제작 · AI 유지보수</th><td class="c"><span class="tag ok">공통 제공</span></td><td class="c"><span class="tag ok">공통 제공</span></td><td class="c hot"><span class="tag ok">공통 제공</span></td></tr>
+      <tr><th>상담 요청 접수</th><td class="c dash">—</td><td class="c"><span class="tag ok">제공</span></td><td class="c hot"><span class="tag ok">제공</span></td></tr>
+      <tr><th>방문자 통계 · SEO</th><td class="c dash">—</td><td class="c dash">—</td><td class="c hot"><span class="tag ok">제공</span></td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ================= 15 홈페이지의 시작 비용을 낮춥니다 ================= -->
+<section class="slide" data-name="s13" data-pg="15" data-label="15 홈페이지의 시작 비용을 낮춥니다" data-sec="34">
+  <div class="glow" style="--o:.12;width:800px;height:800px;left:-200px;top:200px;background:var(--sky)"></div>
+  <h2 class="ttl"><span class="m">홈페이지의</span> 시작 비용을 낮춥니다</h2>
+  <div class="abs hero13" style="left:144px;top:320px;width:1632px" data-step="0" data-fx="rise" data-out="1">
+    <p class="body" style="text-align:center;font-size:40px;font-weight:700;color:var(--ink)">기존 웹사이트 제작업체</p>
+    <div style="display:flex;justify-content:center;gap:160px;margin-top:40px">
+      <div class="stat" style="align-items:center"><span class="lb">제작비</span><span class="n" style="font-size:150px"><span data-count>298</span><small style="font-size:64px">만원</small></span></div>
+      <div class="stat" style="align-items:center"><span class="lb">월 관리</span><span class="n" style="font-size:150px">10~30<small style="font-size:64px">만원</small></span></div>
+    </div>
+  </div>
+  <div class="cg">
+    <span data-step="1" data-fx="fade"></span><span class="hd" data-step="1" data-fx="fade">시작 비용</span><span class="hd" data-step="1" data-fx="fade">월 비용</span>
+    <div style="display:contents"><div data-step="1" data-fx="rise" data-at=".1"><span class="lb2">기존 제작업체</span></div><div data-step="1" data-fx="rise" data-at=".1"><div class="gg"><div class="tk"><div class="fl red" data-grow="x" style="left:0%;width:100%"></div></div><span class="v red"><span data-count>298</span><small>만원</small></span></div></div><div data-step="1" data-fx="rise" data-at=".1"><div class="gg"><div class="tk"><div class="fl red" data-grow="x" style="left:0%;width:33.3%"></div><div class="fl rng" data-grow="x" style="left:33.3%;width:66.7%"></div></div><span class="v red">10~30<small>만원</small></span></div></div></div>
+    <div style="display:contents"><div data-step="1" data-fx="rise" data-at=".5"><span class="lb2 us">웹오 PREMIUM</span></div><div data-step="1" data-fx="rise" data-at=".5"><div class="gg"><div class="tk"><div class="fl " data-grow="x" style="left:0%;width:10.07%"></div></div><span class="v "><span class="g"><span data-count>30</span><small>만원</small></span></span></div></div><div data-step="1" data-fx="rise" data-at=".5"><div class="gg"><div class="tk"><div class="fl " data-grow="x" style="left:0%;width:33.3%"></div></div><span class="v "><span class="g">10<small>만원</small></span></span></div></div></div>
+    <div style="display:contents"><div data-step="1" data-fx="rise" data-at=".65"><span class="lb2 us">웹오 PLUS</span></div><div data-step="1" data-fx="rise" data-at=".65"><div class="gg"><div class="tk"></div><span class="v free"><span class="g">없음</span></span></div></div><div data-step="1" data-fx="rise" data-at=".65"><div class="gg"><div class="tk"><div class="fl " data-grow="x" style="left:0%;width:9.67%"></div></div><span class="v "><span class="g">2.9<small>만원</small></span></span></div></div></div>
+    <div style="display:contents"><div data-step="1" data-fx="rise" data-at=".8"><span class="lb2 us">웹오 STARTER</span></div><div data-step="1" data-fx="rise" data-at=".8"><div class="gg"><div class="tk"></div><span class="v free"><span class="g">없음</span></span></div></div><div data-step="1" data-fx="rise" data-at=".8"><div class="gg"><div class="tk"><div class="fl " data-grow="x" style="left:0%;width:3.33%"></div></div><span class="v "><span class="g">1<small>만원</small></span></span></div></div></div>
+    </div>
+</section>
+
+<!-- ================= 16 구독 매출은, 계속 쓰는 고객에서 (틀만 · 숫자 대기) ================= -->
+<section class="slide" data-name="s14" data-pg="16" data-label="16 매달 쌓이는, 구독 매출" data-sec="38">
+  <div class="glow" style="--o:.12;width:700px;height:700px;left:-200px;top:300px;background:var(--sky)"></div>
+  <h2 class="ttl"><span class="m">매달 쌓이는,</span> 구독 매출</h2>
+  <!-- 결정 대기: 고정비·목표 (부가세는 요금 포함으로 확정) -->
+  <div class="abs stat" style="left:144px;top:400px;width:760px" data-step="1" data-fx="rise">
+    <span class="lb">2027년 1분기 월 구독 매출</span>
+    <span class="n" style="font-size:170px"><span class="g"><span data-count>142</span><small style="font-size:64px">만 원</small></span></span>
+    <span class="cd" style="font-size:28px;white-space:nowrap">유료 39곳 · 누적 가입 700명</span>
+  </div>
+  <!-- 결정 대기: 고정비·목표 (부가세는 요금 포함으로 확정) -->
+  <table class="tbl" style="left:960px;top:420px;width:816px" data-step="2" data-fx="rows">
+    <colgroup><col style="width:220px"><col><col><col></colgroup>
+    <thead><tr><th>요금</th><th class="c">유료</th><th class="c">월 매출</th><th class="c">LTV÷CAC</th></tr></thead>
+    <tbody>
+      <tr><th class="en">STARTER</th><td class="c"><span class="en">11</span>곳</td><td class="c"><span class="en">10</span>만 원</td><td class="c"><span class="en">4.3</span>배</td></tr>
+      <tr><th class="en">PLUS</th><td class="c"><span class="en">19</span>곳</td><td class="c"><span class="en">51</span>만 원</td><td class="c"><span class="en">11.2</span>배</td></tr>
+      <tr><th class="en">PREMIUM</th><td class="c hot"><span class="en">9</span>곳</td><td class="c hot"><span class="en">81</span>만 원</td><td class="c hot"><span class="g"><span class="en">16.7</span>배</span></td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ================= 17 사이트 한 곳당, 매출과 순이익 (신규 · 틀만 · 숫자 대기) ================= -->
+<section class="slide" data-name="s15" data-pg="17" data-label="17 사이트 한 곳당, 매출과 순이익" data-sec="35">
+  <div class="glow" style="--o:.12;width:800px;height:800px;right:-260px;top:-200px;background:var(--violet)"></div>
+  <h2 class="ttl"><span class="m">매장 한 곳당,</span> 매출과 순이익</h2>
+  <!-- 결정 대기: 고정비·목표 (부가세는 요금 포함으로 확정) -->
+  <table class="tbl" style="left:144px;top:310px;width:1632px" data-step="1" data-fx="rows">
+    <colgroup><col style="width:520px"><col><col><col></colgroup>
+    <thead><tr><th>매장당 월 · 원</th><th class="c en">STARTER</th><th class="c en">PLUS</th><th class="c en hot">PREMIUM</th></tr></thead>
+    <tbody>
+      <tr><th>월 매출 (공급가)</th><td class="c en">9,091</td><td class="c en">26,364</td><td class="c en hot">90,909</td></tr>
+      <tr><th>공헌이익</th><td class="c en">6,823</td><td class="c en">17,898</td><td class="c en hot">64,201</td></tr>
+      <tr><th style="color:var(--ink);font-weight:800">매장당 월 순이익</th><td class="c en" style="font-weight:800">4,600</td><td class="c en" style="font-weight:800">15,351</td><td class="c en hot" style="font-weight:800"><span class="g">68,918</span></td></tr>
+    </tbody>
+  </table>
+  <!-- 결정 대기: 고정비·목표 (부가세는 요금 포함으로 확정) -->
+  <div class="bz hot beam abs" style="left:144px;top:690px;width:1632px" data-step="2" data-fx="tilt"><div class="core" style="padding:26px 40px;display:flex;align-items:center;gap:40px">
+    <span class="key" style="font-size:44px;white-space:nowrap">본전 <span class="g en">358</span>곳</span>
+    <span class="body" style="font-size:32px;white-space:nowrap">직원 셋 고용 시</span>
+    <span class="body" style="font-size:32px;white-space:nowrap;margin-left:auto"><b>29곳</b> · 공동 창업자 무급</span>
+  </div></div>
+  <p class="src">* 공급가(부가세 제외) 기준</p>
+</section>
+
+<!-- ================= 18 작게 검증하고, 업종을 넓힙니다 ================= -->
+<section class="slide" data-name="s17" data-pg="18" data-label="18 작게 검증하고, 업종을 넓힙니다" data-sec="42">
+  <div class="glow" style="--o:.12;width:800px;height:800px;right:-300px;top:-200px;background:var(--violet)"></div>
+  <h2 class="ttl"><span class="m">작게 검증하고,</span> 업종을 넓힙니다</h2>
+  <svg class="abs" style="left:144px;top:320px" width="870" height="464" viewBox="0 0 900 480" aria-hidden="true">
+    <text class="svg-sub" data-step="0" data-fx="fade" x="0" y="26" font-size="26" font-weight="600">누적 실사용자 목표</text>
+    <path data-step="0" data-fx="draw" d="M60 298 H900" class="svg-line" stroke-width="1" stroke-dasharray="4 8" opacity=".55"/>
+    <text class="svg-mute" data-step="0" data-fx="fade" x="0" y="305" font-size="20" font-weight="500">200</text>
+    <path data-step="0" data-fx="draw" d="M60 226 H900" class="svg-line" stroke-width="1" stroke-dasharray="4 8" opacity=".55"/>
+    <text class="svg-mute" data-step="0" data-fx="fade" x="0" y="233" font-size="20" font-weight="500">400</text>
+    <path data-step="0" data-fx="draw" d="M60 154 H900" class="svg-line" stroke-width="1" stroke-dasharray="4 8" opacity=".55"/>
+    <text class="svg-mute" data-step="0" data-fx="fade" x="0" y="161" font-size="20" font-weight="500">600</text>
+    <path data-step="0" data-fx="draw" d="M60 82 H900" class="svg-line" stroke-width="1" stroke-dasharray="4 8" opacity=".55"/>
+    <text class="svg-mute" data-step="0" data-fx="fade" x="0" y="89" font-size="20" font-weight="500">800</text>
+    <path data-step="0" data-fx="draw" d="M60 370 H900" class="svg-line" stroke-width="3"/>
+    <path data-step="1" data-fx="grow" data-at="0.00" d="M88 370 V361.0 Q88 352.0 97 352.0 H179 Q188 352.0 188 361.0 V370 Z" fill="url(#lgv)" fill-opacity=".38"/>
+    <path data-step="1" data-fx="grow" data-at="0.12" d="M225 370 V344.0 Q225 334.0 235 334.0 H315 Q325 334.0 325 344.0 V370 Z" fill="url(#lgv)" fill-opacity=".38"/>
+    <path data-step="1" data-fx="grow" data-at="0.24" d="M362 370 V326.0 Q362 316.0 372 316.0 H452 Q462 316.0 462 326.0 V370 Z" fill="url(#lgv)" opacity="1"/>
+    <path data-step="1" data-fx="grow" data-at="0.36" d="M498 370 V260.1 Q498 250.1 508 250.1 H588 Q598 250.1 598 260.1 V370 Z" fill="url(#lgv)" fill-opacity=".38"/>
+    <path data-step="1" data-fx="grow" data-at="0.48" d="M635 370 V193.9 Q635 183.9 645 183.9 H725 Q735 183.9 735 193.9 V370 Z" fill="url(#lgv)" fill-opacity=".38"/>
+    <path data-step="1" data-fx="grow" data-at="0.60" d="M772 370 V128.0 Q772 118.0 782 118.0 H862 Q872 118.0 872 128.0 V370 Z" fill="url(#lgv)" opacity="1"/>
+    <text class="svg-mute" data-step="0" data-fx="fade" x="138" y="404" text-anchor="middle" font-size="24" font-weight="500">10월</text>
+    <text class="svg-mute" data-step="0" data-fx="fade" x="275" y="404" text-anchor="middle" font-size="24" font-weight="500">11월</text>
+    <text class="svg-mute" data-step="0" data-fx="fade" x="412" y="404" text-anchor="middle" font-size="24" font-weight="500">12월</text>
+    <text class="svg-mute" data-step="0" data-fx="fade" x="548" y="404" text-anchor="middle" font-size="24" font-weight="500">1월</text>
+    <text class="svg-mute" data-step="0" data-fx="fade" x="685" y="404" text-anchor="middle" font-size="24" font-weight="500">2월</text>
+    <text class="svg-mute" data-step="0" data-fx="fade" x="822" y="404" text-anchor="middle" font-size="24" font-weight="500">3월</text>
+    <g data-step="1" data-fx="rise" data-at=".5"><text class="svg-ink" x="412" y="296" text-anchor="middle" font-size="40" font-weight="800" letter-spacing="-1">150명</text></g>
+    <g data-step="1" data-fx="rise" data-at=".9"><text class="svg-ink" x="822" y="98" text-anchor="middle" font-size="46" font-weight="800" letter-spacing="-1">700명</text></g>
+    <g data-step="1" data-fx="fade" data-at="1.2"><text x="822" y="160" text-anchor="middle" font-size="20" font-weight="700" fill="#fff">유료 39곳</text></g>
+    <path data-step="0" data-fx="draw" d="M88 420 V428 H462 V420" fill="none" class="svg-line" stroke-width="2"/>
+    <text class="svg-sub" data-step="0" data-fx="fade" x="275" y="466" text-anchor="middle" font-size="28" font-weight="600">2026년 4분기</text>
+    <path data-step="0" data-fx="draw" d="M498 420 V428 H872 V420" fill="none" class="svg-line" stroke-width="2"/>
+    <text class="svg-sub" data-step="0" data-fx="fade" x="685" y="466" text-anchor="middle" font-size="28" font-weight="600">2027년 1분기</text>
+  </svg>
+  <div class="abs" style="left:1060px;top:300px;width:716px;display:grid;gap:16px">
+    <div class="bz hot beam" data-step="2" data-fx="tilt"><div class="core" style="padding:20px 30px"><div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:36px;font-weight:800">2026년 4분기</span><span class="tag">지금</span></div><p class="body" style="margin-top:6px;font-size:30px"><b>피부과 · 에스테틱</b> 우선 검증 후 안정화</p></div></div>
+    <div class="bz" data-step="3" data-fx="tilt"><div class="core" style="padding:24px 32px"><div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:36px;font-weight:800">넓혀 갈 영역</span><span class="xpager"><i class="xd1"></i><i class="xd2"></i></span></div><div class="xpages"><div class="xpage xp1" data-out="4" data-outfx="left"><div class="xind"><div class="xnum"><b data-count>18</b><span>개 업종</span></div><div><p class="xdom"><span>외식</span><i aria-hidden="true">/</i><span>뷰티</span><i aria-hidden="true">/</i><span>운동·교육</span><i aria-hidden="true">/</i><span>공간·숙박</span><i aria-hidden="true">/</i><span>의료·전문</span></p><p class="xsub">웹사이트 수요가 크게 느는 업종부터 분석해 차례로 엽니다</p></div></div><div class="xr"><span class="xl">기능</span><div class="xw"><span class="xc">여러 페이지</span><span class="xc">예약·결제</span><span class="xc">후기·블로그</span><span class="xc">다국어</span></div></div></div><div class="xpage xp2" data-step="4" data-fx="slidein"><div class="xr"><span class="xl">AI</span><div class="xw"><span class="xc own">음성 응대</span><span class="xc own">상담 자동 기록</span><span class="xc own">영상 숏폼</span><span class="xc">CRM·마케팅</span></div></div><div class="xr"><span class="xl">사업</span><div class="xw"><span class="xc">업계 MOU</span><span class="xc">협회·프랜차이즈 제휴</span></div></div><p class="xleg"><span class="xc own xdot"></span>진한 칩은 직접 만들어 쓰는 기술</p></div></div></div></div>
+  </div>
+  <div class="abs" style="left:144px;top:850px;width:1632px;display:flex;align-items:center;gap:16px" data-step="5" data-fx="rows">
+    <span class="body" style="margin-right:10px"><b>검증 기준</b></span>
+    <span class="pill" style="font-size:var(--fs-cap);padding:8px 22px"><span class="dot"></span>배포 성공</span>
+    <span class="pill" style="font-size:var(--fs-cap);padding:8px 22px"><span class="dot"></span>유료 전환</span>
+    <span class="pill" style="font-size:var(--fs-cap);padding:8px 22px"><span class="dot"></span>유지율</span>
+    <span class="pill" style="font-size:var(--fs-cap);padding:8px 22px"><span class="dot"></span>응대 시간</span>
+  </div>
+</section>
+
+<!-- ================= 19 웹사이트를 넘어, 브랜드의 운영으로 ================= -->
+<section class="slide" data-name="s18" data-pg="19" data-label="19 웹사이트를 넘어, 브랜드의 운영으로" data-sec="15" data-blade>
+  <canvas class="dust" width="1920" height="1080"></canvas>
+  <div class="glow" style="--o:.18;width:900px;height:900px;left:-200px;bottom:-400px;background:var(--sky)"></div>
+  <div class="glow" style="--o:.18;width:900px;height:900px;right:-200px;top:-300px;background:var(--violet);animation-duration:22s"></div>
+  <h2 class="ttl" data-dimmable><span class="m">웹사이트를 넘어,</span> 브랜드의 운영으로</h2>
+  <svg class="abs" style="left:144px;top:290px" width="1632" height="600" viewBox="0 0 1632 600" aria-hidden="true" data-dimmable>
+    <circle data-step="1" data-fx="draw" cx="380" cy="300" r="130" fill="url(#lgv)" opacity=".95" stroke="none"/>
+    <circle data-step="2" data-fx="draw" cx="380" cy="300" r="200" fill="none" stroke="url(#lgv)" stroke-width="5"/>
+    <circle data-step="3" data-fx="draw" cx="380" cy="300" r="270" fill="none" stroke="url(#lgv)" stroke-width="3" opacity=".6"/>
+    <g data-step="1" data-fx="pop" data-at=".3"><text x="380" y="282" text-anchor="middle" font-size="40" font-weight="800" fill="#fff">피부과</text><text x="380" y="328" text-anchor="middle" font-size="40" font-weight="800" fill="#fff">에스테틱</text><text x="380" y="366" text-anchor="middle" font-size="26" font-weight="600" fill="#fff" opacity=".88">지금 · 첫 검증</text></g>
+    <path data-step="1" data-fx="draw" data-at=".5" d="M510 300 H760" stroke="url(#lgh)" stroke-width="3" fill="none"/>
+    <g data-step="1" data-fx="rise" data-at=".7"><text class="svg-ink" x="780" y="292" font-size="40" font-weight="800" letter-spacing="-1">웹사이트 제작 · AI 유지보수</text></g>
+    <path data-step="2" data-fx="draw" data-at=".5" d="M532 170 H760" stroke="url(#lgh)" stroke-width="3" fill="none"/>
+    <g data-step="2" data-fx="rise" data-at=".7"><text class="svg-ink" x="780" y="162" font-size="40" font-weight="800" letter-spacing="-1">웹사이트가 필요한 모든 산업</text></g>
+    <path data-step="3" data-fx="draw" data-at=".5" d="M504 60 H760" stroke="url(#lgh)" stroke-width="3" fill="none"/>
+    <g data-step="3" data-fx="rise" data-at=".7"><text class="svg-ink" x="780" y="52" font-size="40" font-weight="800" letter-spacing="-1">브랜딩 AI Agent</text></g>
+  </svg>
+</section>
+
+
+
+<div class="sumov" id="sumov" aria-hidden="true"><p class="sumtx"></p></div>
+<div class="blades" aria-hidden="true"><div class="blade a"></div><div class="blade b"></div></div>
+</div></div>
+<script>
+/* =========================================================
+   0. SETUP — 테마, GSAP 플러그인, 커스텀 이징, 정적(PDF) 모드
+   ========================================================= */
+const Q = new URLSearchParams(location.search);
+let saved = null; try { saved = localStorage.getItem('webo-theme'); } catch (e) {}
+document.documentElement.dataset.theme = Q.get('theme') || 'light';
+gsap.registerPlugin(SplitText, DrawSVGPlugin, CustomEase);
+CustomEase.create('snap', 'M0,0 C0.12,0.9 0.25,1 1,1');
+CustomEase.create('swing', 'M0,0 C0.7,0 0.2,1 1,1');
+const STATIC = Q.has('static');
+if (STATIC) document.documentElement.classList.add('static');
+
+const stage = document.getElementById('stage');
+let SCALE = 1;
+function fit() {
+  SCALE = Math.min(innerWidth / 1920, innerHeight / 1080);
+  stage.style.transform = `translate(${(innerWidth - 1920 * SCALE) / 2}px,${(innerHeight - 1080 * SCALE) / 2}px) scale(${SCALE})`;
+}
+addEventListener('resize', fit); fit();
+
+/* =========================================================
+   1. 공용 마크업 주입 — 로고, 머리 크롬(작은 로고 + 쪽 번호)
+   ========================================================= */
+const LOGO = '<span class="wm">Web</span><svg viewBox="0 0 84 76" aria-hidden="true"><circle class="ring" cx="35" cy="44" r="25" fill="none" stroke="url(#r)" stroke-width="12.5"/><path class="star" d="M72 0 Q74.5 8.5 83 11 Q74.5 13.5 72 22 Q69.5 13.5 61 11 Q69.5 8.5 72 0Z" fill="url(#s)"/></svg>';
+document.querySelectorAll('[data-logo]').forEach(e => { e.innerHTML = LOGO; e.setAttribute('aria-label', 'WebO 웹오'); });
+const bodyN = document.querySelectorAll('.slide[data-pg]').length;
+document.querySelectorAll('.slide[data-pg]').forEach(s => {
+  s.insertAdjacentHTML('afterbegin', `<header class="chrome"><div class="logo sm">${LOGO}</div><div class="pg en">${s.dataset.pg} <i>/ ${bodyN}</i></div></header>`);
+});
+/* 시연 영상: 장에 들어가면 화면 가득 자동 재생 · 파일이 없으면 눌러서 파일 선택 */
+const vbox = document.getElementById('vid'), video = vbox && vbox.querySelector('video'), vfile = document.getElementById('vidFile');
+function demoFull() {
+  if (!vbox || !vbox.classList.contains('has-video') || vbox.classList.contains('full')) return;
+  vbox.classList.add('full');
+  gsap.to(vbox, { left: 0, top: 0, width: 1920, height: 1080, borderRadius: 0, duration: .9, ease: 'expo.inOut' });
+  video.currentTime = 0; video.play().catch(() => {});
+}
+if (video) {
+  video.addEventListener('loadeddata', () => { vbox.classList.add('has-video'); if (slides[cur] && slides[cur].dataset.name === 'demo') demoFull(); });
+  vbox.addEventListener('click', e => {
+    e.stopPropagation();
+    if (!vbox.classList.contains('has-video')) vfile.click();
+    else if (!vbox.classList.contains('full')) demoFull();
+    else video.paused ? video.play() : video.pause();
+  });
+  vfile.addEventListener('change', () => { const f = vfile.files[0]; if (f) { video.src = URL.createObjectURL(f); video.load(); } });
+}
+
+/* =========================================================
+   2. FX 사전 — data-fx 이름 → GSAP 트윈 (모두 '들어올 때'만, out 만 예외)
+   ========================================================= */
+const T = (el, from, to) => gsap.fromTo(el, from, to);
+const FX = {
+  rise: el => T(el, { autoAlpha: 0, y: 60, filter: 'blur(10px)' }, { autoAlpha: 1, y: 0, filter: 'blur(0px)', duration: 1.1, ease: 'snap' }),
+  tilt: el => T(el, { autoAlpha: 0, rotationX: 55, z: -500, y: 90, filter: 'blur(12px)', transformOrigin: '50% 100%' }, { autoAlpha: 1, rotationX: 0, z: 0, y: 0, filter: 'blur(0px)', duration: 1.3, ease: 'snap' }),
+  punch: el => T(el, { autoAlpha: 0, scale: 2.4, filter: 'blur(20px)' }, { autoAlpha: 1, scale: 1, filter: 'blur(0px)', duration: 1, ease: 'expo.out' }),
+  pop: el => T(el, { autoAlpha: 0, scale: 0, transformOrigin: '50% 50%' }, { autoAlpha: 1, scale: 1, duration: .8, ease: 'back.out(2.2)' }),
+  flip: el => T(el, { autoAlpha: 0, rotationY: -80, z: -300, transformOrigin: '0% 50%' }, { autoAlpha: 1, rotationY: 0, z: 0, duration: 1.2, ease: 'snap' }),
+  fade: el => T(el, { autoAlpha: 0 }, { autoAlpha: 1, duration: .8, ease: 'power2.out' }),
+  none: el => gsap.set(el, { autoAlpha: 1 }),
+  out: el => T(el, { autoAlpha: 1 }, { autoAlpha: 0, y: -50, scale: .94, duration: .55, ease: 'power2.in' }),
+  outl: el => T(el, { autoAlpha: 1, x: 0 }, { autoAlpha: 0, x: -90, filter: 'blur(8px)', duration: .5, ease: 'power2.in' }),
+  slidein: el => T(el, { autoAlpha: 0, x: 90, filter: 'blur(8px)' }, { autoAlpha: 1, x: 0, filter: 'blur(0px)', duration: .8, ease: 'snap' }),
+  grow: el => T(el, { autoAlpha: 1, scaleY: 0, transformOrigin: '50% 100%' }, { scaleY: 1, duration: 1.2, ease: 'expo.out' }),
+  growx: el => T(el, { autoAlpha: 1, scaleX: 0, transformOrigin: '0% 50%' }, { scaleX: 1, duration: 1.3, ease: 'expo.out' }),
+  drop: el => T(el, { autoAlpha: 1, scaleY: 0, transformOrigin: '50% 0%' }, { scaleY: 1, duration: 1, ease: 'expo.out' }),
+  draw: el => {
+    const filled = el.getAttribute('fill') && el.getAttribute('fill') !== 'none';
+    const targets = el.matches('g') ? el.querySelectorAll('path,circle,line,rect') : el;
+    if (filled) return T(el, { autoAlpha: 1, clipPath: 'inset(0 100% 0 0)' }, { clipPath: 'inset(0 0% 0 0)', duration: 1.2, ease: 'expo.out' });
+    return T(targets, { autoAlpha: 1, drawSVG: '0%' }, { drawSVG: '100%', duration: 1.4, ease: 'power3.inOut', stagger: .08 });
+  },
+  words: el => {
+    gsap.set(el, { autoAlpha: 1 });
+    const sp = new SplitText(el.matches('.quote') ? el.firstElementChild : el, { type: 'words', wordsClass: 'w' });
+    return T(sp.words, { autoAlpha: 0, z: -500, y: 30, filter: 'blur(12px)' }, { autoAlpha: 1, z: 0, y: 0, filter: 'blur(0px)', duration: 1.1, ease: 'snap', stagger: .055 });
+  },
+  rows: el => {
+    gsap.set(el, { autoAlpha: 1 });
+    const rows = el.matches('table') ? el.querySelectorAll('tr') : el.children;
+    return T(rows, { autoAlpha: 0, x: -50, filter: 'blur(6px)' }, { autoAlpha: 1, x: 0, filter: 'blur(0px)', duration: .8, ease: 'snap', stagger: .07 });
+  },
+  finale: el => {
+    const t = gsap.timeline(), sl = el.closest('.slide');
+    t.set(el, { autoAlpha: 1 })
+      .to(sl.querySelectorAll('[data-dimmable]'), { opacity: .1, filter: 'blur(18px)', duration: 1, ease: 'power2.out' }, 0)
+      .fromTo(el.querySelector('.wm'), { autoAlpha: 0, z: -800, filter: 'blur(16px)' }, { autoAlpha: 1, z: 0, filter: 'blur(0px)', duration: 1.1, ease: 'snap' }, 0)
+      .fromTo(el.querySelector('.ring'), { drawSVG: '0%' }, { drawSVG: '100%', duration: 1.3, ease: 'power3.inOut' }, .2)
+      .fromTo(el.querySelector('.star'), { scale: 0, rotation: -180, transformOrigin: '50% 50%' }, { scale: 1, rotation: 0, duration: .9, ease: 'back.out(2.5)' }, 1);
+    const sp = new SplitText(el.querySelector('.eq .g'), { type: 'chars', charsClass: 'ch' });
+    t.fromTo(el.querySelector('.eq .dash'), { autoAlpha: 0 }, { autoAlpha: 1, duration: .5 }, .5)
+      .fromTo(sp.chars, { autoAlpha: 0, z: -600, rotationX: -90, filter: 'blur(10px)' }, { autoAlpha: 1, z: 0, rotationX: 0, filter: 'blur(0px)', duration: 1, ease: 'snap', stagger: .04 }, .6);
+    return t;
+  },
+};
+
+/* 숫자 카운트업 + 막대 가로 성장 */
+const fmt = (v, d) => v.toLocaleString('en-US', { minimumFractionDigits: d, maximumFractionDigits: d });
+function extras(el, tl, at) {
+  const cs = el.matches('[data-count]') ? [el] : el.querySelectorAll('[data-count]');
+  cs.forEach(c => {
+    const txt = c.dataset.final ??= c.textContent, d = (txt.split('.')[1] || '').length, n = parseFloat(txt.replace(/,/g, '')), o = { v: 0 };
+    tl.to(o, { v: n, duration: 1.6, ease: 'power3.out', onUpdate: () => c.textContent = fmt(o.v, d), onComplete: () => c.textContent = txt }, at + .15);
+  });
+  el.querySelectorAll('[data-grow="x"]').forEach(b => tl.fromTo(b, { scaleX: 0, transformOrigin: '0% 50%' }, { scaleX: 1, duration: 1.3, ease: 'expo.out' }, at + .2));
+}
+function play(els, tl, base) {
+  els.forEach((el, i) => {
+    const at = base + (el.dataset.at != null ? +el.dataset.at : i * .12);
+    tl.add((FX[el.dataset.fx] || FX.rise)(el), at);
+    extras(el, tl, at);
+  });
+}
+function gridIn(s, tl, at = 0) {
+  const v = s.querySelectorAll('.gl.v'), h = s.querySelectorAll('.gl.h'), n = s.querySelectorAll('.node');
+  if (v.length) tl.from(v, { scaleY: 0, transformOrigin: 'top', duration: 1.4, ease: 'expo.out', stagger: .1 }, at);
+  if (h.length) tl.from(h, { scaleX: 0, transformOrigin: 'left', duration: 1.4, ease: 'expo.out', stagger: .1 }, at + .1);
+  if (n.length) tl.from(n, { scale: 0, opacity: 0, duration: .6, ease: 'back.out(3)', stagger: .15 }, at + .9);
+}
+function logoDraw(root, tl, at = 0) {
+  tl.from(root.querySelector('.ring'), { drawSVG: '0%', duration: 1.4, ease: 'power3.inOut' }, at)
+    .from(root.querySelector('.star'), { scale: 0, rotation: -180, transformOrigin: '50% 50%', duration: .9, ease: 'back.out(2.5)' }, at + 1)
+    .to(root.querySelector('.star'), { scale: 1.18, repeat: -1, yoyo: true, duration: 1.4, ease: 'sine.inOut', transformOrigin: '50% 50%' }, at + 2);
+}
+/* 장 진입: 대제목이 가운데 크게 떴다가 줄어들며 제목 자리로 */
+const T0 = 1.8;
+function titleIntro(ttl, tl) {
+  const r = document.createRange(); r.selectNodeContents(ttl);
+  const w = r.getBoundingClientRect().width / SCALE, h = ttl.offsetHeight;
+  const k = Math.min(1.45, 1700 / w);
+  gsap.set(ttl, { x: 960 - ttl.offsetLeft - k * w / 2, y: 540 - ttl.offsetTop - k * h / 2, scale: k, transformOrigin: '0 0' });
+  tl.add(FX.words(ttl), .1).to(ttl, { x: 0, y: 0, scale: 1, duration: .85, ease: 'expo.inOut' }, 1.0);
+}
+
+/* =========================================================
+   3. 장별 특수 연출
+   ========================================================= */
+const SPECIAL = {
+  cover(s, tl) {
+   tl.from(s.querySelector('.logo.hero .wm'), { z: -900, opacity: 0, filter: 'blur(16px)', duration: 1.3, ease: 'snap' }, .2);
+    logoDraw(s.querySelector('.logo.hero'), tl, .3);
+    const sp = new SplitText(s.querySelector('.slogan:not(.alt)'), { type: 'chars', charsClass: 'ch' });
+    tl.from(sp.chars, { z: -700, rotationX: -100, yPercent: 60, opacity: 0, filter: 'blur(10px)', transformOrigin: '50% 50% -60px', duration: 1.2, ease: 'snap', stagger: { each: .05, from: 'center' } }, .9);
+  },
+  // 04 와이어프레임: 카드 블록 세 개가 자리를 바꾸며 '배치 판단'을 표현 (무한 반복)
+  s04(s, tl, base) {
+    const b = s.querySelectorAll('.wire .blk');
+    tl.add(() => {
+      const loop = gsap.timeline({ repeat: -1, repeatDelay: 1.2, defaults: { duration: .9, ease: 'snap' } });
+      loop.to(b[0], { x: 156 }, 0).to(b[1], { x: -156 }, 0)
+        .to(b[1], { x: 156 }, 1.6).to(b[2], { x: -156 }, 1.6)
+        .to(b[0], { x: 0 }, 3.2).to(b[2], { x: 0 }, 3.2).to(b[1], { x: 0 }, 3.2);
+    }, base + 2.2);
+  },
+  // 05 벤다이어그램: 두 원이 양옆에서 들어옴
+  s05(s, tl, base) {
+    tl.fromTo(s.querySelector('.vl'), { x: -600, autoAlpha: 0 }, { x: 0, autoAlpha: 1, duration: 1.3, ease: 'snap' }, base)
+      .fromTo(s.querySelector('.vr'), { x: 600, autoAlpha: 0 }, { x: 0, autoAlpha: 1, duration: 1.3, ease: 'snap' }, base);
+  },
+  // 06 로고: 교집합 색이 화면을 덮은 상태에서 로고 고리 자리로 줄어들고 로고가 그려짐
+  logo(s, tl) {
+    tl.fromTo(s.querySelector('.lgfill'), { clipPath: 'circle(120% at 50% 52.8%)' }, { clipPath: 'circle(0% at 57% 42%)', duration: 1.1, ease: 'expo.inOut' }, 0);
+    const L = s.querySelector('.logo.big');
+    tl.fromTo(L, { scale: 1.12 }, { scale: 1, duration: 1.2, ease: 'expo.out' }, .1)
+      .to(L.querySelector('.star'), { scale: 1.18, repeat: -1, yoyo: true, duration: 1.4, ease: 'sine.inOut', transformOrigin: '50% 50%' }, 1.3)
+      .from(s.querySelector('.lgname'), { autoAlpha: 0, y: 30, duration: .8, ease: 'snap' }, .8);
+  },
+  demo(s, tl) { tl.call(demoFull, null, .6); },
+};
+const STEPS = {
+  // 18 넓혀 갈 영역: 2장으로 넘길 때 쪽 표시 점도 옮긴다
+  s17(s, steps) {
+    // 1장이 뜰 때 업종 이름과 원칙 줄이 왼쪽부터 차례로 들어온다(18은 data-count로 올라간다)
+    const f3 = steps[2], seq = s.querySelectorAll('.xdom > *, .xsub');
+    if (f3 && seq.length) steps[2] = () => f3().fromTo(seq, { autoAlpha: 0, x: -12 }, { autoAlpha: 1, x: 0, duration: .5, ease: 'power2.out', stagger: .07 }, .6);
+    const f = steps[3], d1 = s.querySelector('.xd1'), d2 = s.querySelector('.xd2');
+    if (!f || !d1 || !d2) return;
+    const on = getComputedStyle(d1).backgroundColor, off = getComputedStyle(d2).backgroundColor;
+    steps[3] = () => f().to(d1, { backgroundColor: off, duration: .4 }, .2).to(d2, { backgroundColor: on, duration: .4 }, .2);
+  },
+  s07(s, steps) {
+    const tpl = s.querySelector('.tpl'), f2 = steps[1];
+    if (!tpl || !f2) return;
+    steps[1] = () => { const t = f2(); t.to(tpl, { x: -872, duration: 1.1, ease: 'snap' }, .1); return t; };
+  },
+};
+/* 다음 장 직전 단계: 하단 요약을 뒤 흐림 위 가운데 크게 */
+const SUM = document.getElementById('sumov'), SUMT = SUM.firstElementChild;
+const esc = t => t.replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
+function sumStep(el) {
+  return () => {
+    const src = el.matches('.key') ? el : (el.querySelector('.key') || el);
+    let html = src.innerHTML;
+    if ((el.dataset.sum || '').includes('|')) html = html.replace(', ', ',<br>');
+    gsap.set(SUMT, { clearProps: 'all' });
+    SUMT.innerHTML = html;
+    // 검은 글은 지우고, 파란 강조(.g)만 가운데로 모은다
+    const black = [], blue = [];
+    [...SUMT.childNodes].forEach(n => {
+      if (n.nodeType === 3) { if (!n.textContent.trim()) return; const w = document.createElement('span'); w.textContent = n.textContent; n.replaceWith(w); black.push(w); }
+      else if (n.nodeType === 1 && n.classList.contains('g')) blue.push(n);
+      else if (n.nodeType === 1 && n.tagName !== 'BR') black.push(n);
+    });
+    blue.forEach(b => { b.style.display = 'inline-block'; });
+    return gsap.timeline()
+      .fromTo(SUM, { autoAlpha: 0 }, { autoAlpha: 1, duration: .6, ease: 'power2.out' }, 0)
+      .fromTo(SUMT, { autoAlpha: 0, scale: .96, filter: 'blur(18px)' }, { autoAlpha: 1, scale: 1, filter: 'blur(0px)', duration: 1, ease: 'expo.out' }, .15);
+  };
+}
+// 모으기는 따로 한 클릭이다. 문장 뒤에 시간차로 붙이면 그 사이 누른 클릭을 settle()이 끝 상태로 건너뛴다.
+function focusStep() {
+  return () => {
+    const tl = gsap.timeline(), blue = SUMT.querySelectorAll(':scope > .g');
+    const black = [...SUMT.children].filter(n => !n.classList.contains('g') && n.tagName !== 'BR');
+    if (blue.length !== 1 || !black.length) return tl;
+    const b = blue[0], r = b.getBoundingClientRect(), c = SUM.getBoundingClientRect();
+    const dx = (c.left + c.width / 2 - (r.left + r.width / 2)) / SCALE, dy = (c.top + c.height / 2 - (r.top + r.height / 2)) / SCALE;
+    return tl.to(black, { autoAlpha: 0, filter: 'blur(10px)', duration: .6, ease: 'power2.in' }, 0)
+      .to(b, { x: dx, y: dy, scale: 1.35, duration: 1.05, ease: 'expo.inOut' }, .25);
+  };
+}
+
+/* =========================================================
+   4. 장 빌더 — data-step 별로 묶고, 0단계는 진입 시 자동 재생
+   ========================================================= */
+function build(s) {
+  const tl = gsap.timeline(), name = s.dataset.name, groups = new Map(), outs = new Map();
+  const sumEl = s.querySelector('[data-sum]');
+  if (sumEl) gsap.set(sumEl, { autoAlpha: 0 });
+  s.querySelectorAll('[data-step]').forEach(el => { if (el === sumEl) return; const k = +el.dataset.step; if (!groups.has(k)) groups.set(k, []); groups.get(k).push(el); });
+  s.querySelectorAll('[data-out]').forEach(el => { const k = +el.dataset.out; if (!outs.has(k)) outs.set(k, []); outs.get(k).push(el); });
+  for (const [k, els] of groups) if (k > 0) gsap.set(els, { autoAlpha: 0 });
+  gridIn(s, tl, 0);
+  let base = .45;
+  const ttl = s.querySelector('.ttl');
+  if (ttl) { if (s.hasAttribute('data-plain')) tl.add(FX.words(ttl), .15); else { titleIntro(ttl, tl); base = T0; } }
+  if (SPECIAL[name]) SPECIAL[name](s, tl, base);
+  if (groups.has(0)) play(groups.get(0), tl, base);
+  const max = Math.max(0, ...groups.keys(), ...outs.keys()), steps = [];
+  for (let k = 1; k <= max; k++) {
+    const els = groups.get(k) || [], o = outs.get(k) || [];
+    steps.push(() => { const t = gsap.timeline(); o.forEach(el => t.add((el.dataset.outfx === 'left' ? FX.outl : FX.out)(el), 0)); play(els, t, o.length ? .3 : 0); return t; });
+  }
+  if (STEPS[name]) STEPS[name](s, steps);
+  if (sumEl) { steps.push(sumStep(sumEl)); if (sumEl.hasAttribute('data-focus')) steps.push(focusStep()); }
+  let introEnd = 0;
+  tl.getChildren(false, true, true).forEach(c => { if (c.repeat && c.repeat() === -1) return; introEnd = Math.max(introEnd, c.endTime()); });
+  return { tl, steps, introEnd };
+}
+
+/* =========================================================
+   5. 전환 — 기본 짧은 크로스페이드, data-blade 장은 사선 교차, 05→06 은 교집합 클로즈업
+   ========================================================= */
+const A = document.querySelector('.blade.a'), B = document.querySelector('.blade.b');
+gsap.set([A, B], { rotation: -14 }); gsap.set(A, { xPercent: -110 }); gsap.set(B, { xPercent: 110 });
+let busy = false;
+function blades(mid) {
+  busy = true;
+  return gsap.timeline({ onComplete: () => busy = false })
+    .to(SUM, { autoAlpha: 0, duration: .3, ease: 'power1.out' }, 0)
+    .set(A, { xPercent: -110 }, 0).set(B, { xPercent: 110 }, 0)
+    .to(A, { xPercent: 0, duration: .5, ease: 'swing' }, 0)
+    .to(B, { xPercent: 0, duration: .5, ease: 'swing' }, .06)
+    .add(mid)
+    .to(A, { xPercent: 110, duration: .55, ease: 'expo.in' }, '+=.04')
+    .to(B, { xPercent: -110, duration: .55, ease: 'expo.in' }, '<.04');
+}
+function xfade(prev, next, mid) {
+  busy = true;
+  return gsap.timeline({ onComplete: () => busy = false })
+    .to(SUM, { autoAlpha: 0, duration: .28, ease: 'power1.out' }, 0)
+    .to(prev, { opacity: 0, duration: .28, ease: 'power1.out' }, 0)
+    .add(mid)
+    .set(prev, { clearProps: 'opacity' })
+    .fromTo(next, { opacity: 0 }, { opacity: 1, duration: .32, ease: 'power1.out' });
+}
+function closeup(prev, mid) {
+  busy = true;
+  const svg = prev.querySelector('.venn'), lens = prev.querySelector('.lens circle');
+  const fade = [...prev.querySelectorAll('.venn text,.venn .ring,.ttl,.key,.chrome')];
+  return gsap.timeline({ onComplete: () => busy = false })
+    .to(SUM, { autoAlpha: 0, duration: .35, ease: 'power1.out' }, 0)
+    .to(fade, { autoAlpha: 0, duration: .35, ease: 'power1.out' }, 0)
+    .to(lens, { opacity: 1, duration: .3 }, 0)
+    .to(svg, { scale: 14, transformOrigin: '816px 320px', duration: 1.05, ease: 'power3.in' }, .15)
+    .add(mid)
+    .set([svg, lens, ...fade], { clearProps: 'transform,opacity,visibility' });
+}
+
+/* =========================================================
+   6. 덱 컨트롤러 — 스페이스/→ = 다음 단계(없으면 다음 장)
+   ========================================================= */
+const slides = [...document.querySelectorAll('.slide')];
+let cur = -1, step = 0, live = null;
+function enter(i, atEnd) {
+  const s = slides[i];
+  slides.forEach(x => x.classList.toggle('active', x === s));
+  document.querySelectorAll('video').forEach(v => v.pause());
+  if (vbox) { gsap.set(vbox, { clearProps: 'all' }); vbox.classList.remove('full'); }
+  gsap.set(SUM, { autoAlpha: 0 });
+  cur = i; step = 0;
+  if (live) live.ctx.revert();
+  live = null;
+  if (!STATIC) {
+    let api; const ctx = gsap.context(() => { api = build(s); }, s);
+    live = { ...api, ctx };
+    // atEnd === true: 모든 단계가 끝난 상태로 · 숫자 n: n단계까지 끝난 상태로(← 로 한 단계 되돌릴 때)
+    const upto = atEnd === true ? live.steps.length : typeof atEnd === 'number' ? Math.min(atEnd, live.steps.length) : 0;
+    if (upto > 0 || atEnd === true) { live.tl.progress(1); ctx.add(() => live.steps.slice(0, upto).forEach(f => f().progress(1))); step = upto; }
+  }
+  post();
+}
+function go(i, atEnd) {
+  if (i < 0 || i >= slides.length || busy) return;
+  const prev = slides[cur], next = slides[i];
+  if (cur < 0 || STATIC) enter(i, atEnd);
+  else if (prev.dataset.name === 's05' && i === cur + 1) closeup(prev, () => enter(i, atEnd));
+  else if (next.hasAttribute('data-blade') && i === cur + 1) blades(() => enter(i, atEnd));
+  else xfade(prev, next, () => enter(i, atEnd));
+}
+// 빨리 누르면 남은 연출을 끊어 건너뛰지 않고 0.4초 안에 빠르게 마저 재생한다
+function hurry(t, end) {
+  const r = end - t.time();
+  if (r <= 0) return;
+  t._hurry?.kill();
+  t.timeScale(Math.max(1, r / .4));
+  t._hurry = gsap.delayedCall(.45, () => t.timeScale(1));
+}
+function settle() {
+  if (!live) return false;
+  let jumped = false;
+  if (live.tl.time() < live.introEnd - .45) { hurry(live.tl, live.introEnd); jumped = true; }
+  if (live.last && live.last.duration() - live.last.time() > .45) { hurry(live.last, live.last.duration()); jumped = true; }
+  return jumped;
+}
+function fwd() {
+  if (busy) return;
+  if (settle()) return;
+  if (live && step < live.steps.length) { const f = live.steps[step++]; live.ctx.add(() => { live.last = f(); }); post(); }
+  else go(cur + 1);
+}
+function back() {
+  if (busy) return;
+  if (live && step > 0) { enter(cur, step - 1); return; }
+  go(cur - 1, true);
+}
+function setTheme(t) { document.documentElement.dataset.theme = t; try { localStorage.setItem('webo-theme', t); } catch (e) {} }
+addEventListener('keydown', e => {
+  const k = e.key;
+  if (['ArrowRight', 'PageDown', ' ', 'Enter'].includes(k)) { e.preventDefault(); fwd(); }
+  else if (['ArrowLeft', 'PageUp', 'Backspace'].includes(k)) { e.preventDefault(); back(); }
+  else if (k === 'Home') go(0);
+  else if (k === 'End') go(slides.length - 1, true);
+  else if (k === 'f' || k === 'F') document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen();
+  else if (k === 'p' || k === 'P') openPresenter();
+  else if (k === 't' || k === 'T') setTheme(document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark');
+});
+addEventListener('click', e => { if (!e.target.closest('#vid')) fwd(); });
+
+/* =========================================================
+   7. 발표자 창 (P) — 노트·단계·남은 시간, 다른 창에서도 조작
+   ========================================================= */
+const bc = 'BroadcastChannel' in window ? new BroadcastChannel('webo-deck-17') : null;
+function post() {
+  if (!bc || cur < 0) return;
+  const s = slides[cur];
+  bc.postMessage({ label: s.dataset.label, i: cur + 1, n: slides.length, step, steps: live ? live.steps.length : 0, sec: +s.dataset.sec || 0, notes: (s.querySelector('.notes')?.textContent || '').trim(), next: slides[cur + 1]?.dataset.label || '끝' });
+}
+if (bc) bc.onmessage = e => { if (e.data === 'next') fwd(); if (e.data === 'prev') back(); if (e.data === 'hello') post(); };
+function openPresenter() {
+  const w = window.open('', 'webo-presenter-17', 'width=980,height=760');
+  if (!w) return;
+  w.document.write(`<!doctype html><html lang="ko"><head><meta charset="utf-8"><title>발표자 노트 · 웹오</title><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pretendard@1.3.9/dist/web/static/pretendard.css">
+<style>body{margin:0;padding:28px 34px;background:#0b1330;color:#eef1f8;font-family:Pretendard,sans-serif}header{display:flex;justify-content:space-between;align-items:baseline;gap:20px}h1{margin:0;font-size:30px}.t{font-size:44px;font-weight:800;font-variant-numeric:tabular-nums}.t.over{color:#ff8a7a}.meta{color:#aab3cc;font-size:20px;margin-top:6px}pre{white-space:pre-wrap;font:24px/1.6 Pretendard,sans-serif;background:#131d42;border-radius:16px;padding:22px 26px;margin:20px 0}.nx{color:#aab3cc;font-size:20px}button{font:inherit;font-size:22px;padding:12px 26px;border-radius:999px;border:0;background:#1e6bff;color:#fff;margin-right:10px;cursor:pointer}</style></head>
+<body><header><div><h1 id="l"></h1><div class="meta" id="m"></div></div><div style="text-align:right"><div class="t" id="slt">0:00</div><div class="meta">전체 <span id="tot">0:00</span></div></div></header><pre id="n"></pre><div class="nx">다음: <b id="x"></b></div><p><button id="pv">← 이전</button><button id="nv">다음 단계 →</button></p>
+<script>const c=new BroadcastChannel('webo-deck-17');let t0=0,s0=Date.now(),sec=0,last='';const f=s=>Math.floor(s/60)+':'+String(Math.floor(s%60)).padStart(2,'0');
+c.onmessage=e=>{const d=e.data;if(typeof d!=='object')return;if(!t0&&d.i>1)t0=Date.now()-Math.min(Date.now()-s0,30000);if(d.label!==last){s0=Date.now();last=d.label}sec=d.sec;l.textContent=d.label;m.textContent='장 '+d.i+'/'+d.n+' · 단계 '+d.step+'/'+d.steps+(d.sec?' · 목표 '+f(d.sec):'');n.textContent=d.notes||'(노트 없음)';x.textContent=d.next};
+setInterval(()=>{const e=(Date.now()-s0)/1000;slt.textContent=f(e);slt.className='t'+(sec&&e>sec?' over':'');tot.textContent=t0?f((Date.now()-t0)/1000):'0:00'},500);
+nv.onclick=()=>c.postMessage('next');pv.onclick=()=>c.postMessage('prev');addEventListener('keydown',e=>{if([' ','ArrowRight','PageDown'].includes(e.key)){e.preventDefault();c.postMessage('next')}if(['ArrowLeft','PageUp'].includes(e.key))c.postMessage('prev')});c.postMessage('hello');<\/script></body></html>`);
+  w.document.close();
+}
+
+/* =========================================================
+   8. 입자 — 브랜드 색 먼지 (01·18만)
+   ========================================================= */
+document.querySelectorAll('canvas.dust').forEach(cv => {
+  const ctx = cv.getContext('2d'), C = ['18,181,245', '30,107,255', '176,108,245'];
+  const P = Array.from({ length: 60 }, () => ({ x: Math.random() * 1920, y: Math.random() * 1080, r: 1 + Math.random() * 3, v: .15 + Math.random() * .5, c: C[Math.random() * 3 | 0], a: Math.random() * 6 }));
+  gsap.ticker.add(() => {
+    if (!cv.closest('.slide').classList.contains('active')) return;
+    ctx.clearRect(0, 0, 1920, 1080);
+    for (const p of P) {
+      p.y -= p.v; p.a += .02; if (p.y < -10) { p.y = 1090; p.x = Math.random() * 1920; }
+      ctx.beginPath(); ctx.arc(p.x + Math.sin(p.a) * 12, p.y, p.r, 0, 7); ctx.fillStyle = `rgba(${p.c},${.25 + .25 * Math.sin(p.a)})`; ctx.fill();
+    }
+  });
+});
+
+/* PDF 내보내기·점검용 API */
+window.deck = { count: slides.length, goto: (i, atEnd) => enter(i, atEnd), labels: slides.map(s => s.dataset.label), state: () => ({ cur, step, steps: live ? live.steps.length : 0, busy }), hasSum: i => !!slides[i].querySelector('[data-sum]'), fwd, go };
+document.fonts.ready.then(() => go(0));
+</script>
+</body>
+</html>
